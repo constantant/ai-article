@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { Request } from 'express';
 
 /**
@@ -14,7 +19,9 @@ export class AdminGuard implements CanActivate {
     const expected = process.env['ADMIN_API_KEY'];
 
     if (!expected) {
-      throw new UnauthorizedException('ADMIN_API_KEY is not configured on the server');
+      throw new UnauthorizedException(
+        'ADMIN_API_KEY is not configured on the server',
+      );
     }
     if (provided !== expected) {
       throw new UnauthorizedException('invalid x-admin-key');

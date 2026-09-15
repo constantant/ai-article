@@ -6,7 +6,10 @@ export const ARTICLE_SCHEMA_VERSION = 1;
 const slugSchema = z
   .string()
   .min(1)
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'slug must be lowercase, hyphen-separated');
+  .regex(
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+    'slug must be lowercase, hyphen-separated',
+  );
 
 export const articleMetaSchema = z.object({
   seo: z
@@ -54,11 +57,15 @@ export const articleDraftInputSchema = articleSchema
     updatedAt: true,
   })
   .extend({
-    schemaVersion: z.literal(ARTICLE_SCHEMA_VERSION).default(ARTICLE_SCHEMA_VERSION),
+    schemaVersion: z
+      .literal(ARTICLE_SCHEMA_VERSION)
+      .default(ARTICLE_SCHEMA_VERSION),
   });
 export type ArticleDraftInput = z.infer<typeof articleDraftInputSchema>;
 
-export const articleUpdateInputSchema = articleDraftInputSchema.partial().extend({
-  id: z.string().min(1),
-});
+export const articleUpdateInputSchema = articleDraftInputSchema
+  .partial()
+  .extend({
+    id: z.string().min(1),
+  });
 export type ArticleUpdateInput = z.infer<typeof articleUpdateInputSchema>;

@@ -11,7 +11,10 @@ const migrationsDir = join(__dirname, '../../../prisma/migrations');
  * it directly (no `prisma migrate deploy` subprocess) — fast and
  * deterministic for tests, and stays correct as new migrations are added.
  */
-export async function createTestDatabase(): Promise<{ url: string; dir: string }> {
+export async function createTestDatabase(): Promise<{
+  url: string;
+  dir: string;
+}> {
   const dir = mkdtempSync(join(tmpdir(), 'rest-api-test-'));
   const url = `file:${join(dir, 'test.db')}`;
 
@@ -22,7 +25,10 @@ export async function createTestDatabase(): Promise<{ url: string; dir: string }
     .sort();
 
   for (const migration of migrations) {
-    const sql = readFileSync(join(migrationsDir, migration, 'migration.sql'), 'utf-8');
+    const sql = readFileSync(
+      join(migrationsDir, migration, 'migration.sql'),
+      'utf-8',
+    );
     for (const statement of sql
       .split(';')
       .map((s) => s.trim())

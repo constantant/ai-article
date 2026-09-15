@@ -3,7 +3,10 @@ import type { Article, ArticleMeta, ArticleStatus, Block } from '@org/schema';
 import { Prisma } from '../../generated/prisma/client.js';
 import type { Article as ArticleRow } from '../../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { ArticleRepository, SlugConflictError } from './article-repository.port.js';
+import {
+  ArticleRepository,
+  SlugConflictError,
+} from './article-repository.port.js';
 
 function toArticle(row: ArticleRow): Article {
   return {
@@ -66,11 +69,16 @@ export class PrismaArticleRepository implements ArticleRepository {
   }
 
   async findBySlug(appId: string, slug: string): Promise<Article | null> {
-    const row = await this.prisma.article.findUnique({ where: { appId_slug: { appId, slug } } });
+    const row = await this.prisma.article.findUnique({
+      where: { appId_slug: { appId, slug } },
+    });
     return row ? toArticle(row) : null;
   }
 
-  async list(appId: string, filter?: { status?: ArticleStatus }): Promise<Article[]> {
+  async list(
+    appId: string,
+    filter?: { status?: ArticleStatus },
+  ): Promise<Article[]> {
     const rows = await this.prisma.article.findMany({
       where: { appId, ...(filter?.status ? { status: filter.status } : {}) },
       orderBy: { createdAt: 'desc' },
@@ -79,7 +87,10 @@ export class PrismaArticleRepository implements ArticleRepository {
   }
 
   private mapConflict(error: unknown, appId: string, slug: string): unknown {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2002'
+    ) {
       return new SlugConflictError(appId, slug);
     }
     return error;

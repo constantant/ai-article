@@ -1,4 +1,9 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import type { Article, ArticleDraftInput, ValidationError } from '@org/schema';
 import { validateArticle, validateArticleDraft } from '@org/schema';
 import { randomUUID } from 'node:crypto';
@@ -6,7 +11,10 @@ import { matchesApiKey } from '../common/api-key.js';
 import type { AppProfileRepository } from '../storage/app-profile-repository.port.js';
 import { SlugConflictError } from '../storage/article-repository.port.js';
 import type { ArticleRepository } from '../storage/article-repository.port.js';
-import { APP_PROFILE_REPOSITORY, ARTICLE_REPOSITORY } from '../storage/tokens.js';
+import {
+  APP_PROFILE_REPOSITORY,
+  ARTICLE_REPOSITORY,
+} from '../storage/tokens.js';
 import { PublishEvents } from './publish-events.js';
 
 export class ArticleValidationException extends BadRequestException {
@@ -34,18 +42,28 @@ export class ArticlesService {
   private async loadArticle(appId: string, id: string): Promise<Article> {
     const article = await this.articles.findById(appId, id);
     if (!article) {
-      throw new NotFoundException(`article "${id}" not found for app "${appId}"`);
+      throw new NotFoundException(
+        `article "${id}" not found for app "${appId}"`,
+      );
     }
     return article;
   }
 
   async createDraft(appId: string, input: ArticleDraftInput): Promise<Article> {
     if (input.appId !== appId) {
-      throw new BadRequestException(`body.appId "${input.appId}" does not match route app "${appId}"`);
+      throw new BadRequestException(
+        `body.appId "${input.appId}" does not match route app "${appId}"`,
+      );
     }
     const profile = await this.loadProfile(appId);
     const now = new Date().toISOString();
-    const candidate: Article = { ...input, id: randomUUID(), status: 'draft', createdAt: now, updatedAt: now };
+    const candidate: Article = {
+      ...input,
+      id: randomUUID(),
+      status: 'draft',
+      createdAt: now,
+      updatedAt: now,
+    };
 
     const result = validateArticle(candidate, profile);
     if (!result.valid) {
@@ -61,7 +79,11 @@ export class ArticlesService {
     }
   }
 
-  async update(appId: string, id: string, patch: Partial<ArticleDraftInput>): Promise<Article> {
+  async update(
+    appId: string,
+    id: string,
+    patch: Partial<ArticleDraftInput>,
+  ): Promise<Article> {
     const profile = await this.loadProfile(appId);
     const existing = await this.loadArticle(appId, id);
     const merged: Article = {
@@ -90,7 +112,11 @@ export class ArticlesService {
   async publish(appId: string, id: string): Promise<Article> {
     const profile = await this.loadProfile(appId);
     const existing = await this.loadArticle(appId, id);
-    const toPublish: Article = { ...existing, status: 'published', updatedAt: new Date().toISOString() };
+    const toPublish: Article = {
+      ...existing,
+      status: 'published',
+      updatedAt: new Date().toISOString(),
+    };
 
     const result = validateArticle(toPublish, profile);
     if (!result.valid) {
@@ -113,7 +139,9 @@ export class ArticlesService {
   async getPublishedBySlug(appId: string, slug: string): Promise<Article> {
     const article = await this.articles.findBySlug(appId, slug);
     if (!article || article.status !== 'published') {
-      throw new NotFoundException(`published article "${slug}" not found for app "${appId}"`);
+      throw new NotFoundException(
+        `published article "${slug}" not found for app "${appId}"`,
+      );
     }
     return article;
   }
@@ -129,6 +157,9 @@ export class ArticlesService {
       throw new NotFoundException(`app "${appId}" not found`);
     }
     const isAuthedCaller = !!apiKey && matchesApiKey(apiKey, stored.apiKeyHash);
-    return this.articles.list(appId, isAuthedCaller ? undefined : { status: 'published' });
+    return this.articles.list(
+      appId,
+      isAuthedCaller ? undefined : { status: 'published' },
+    );
   }
 }

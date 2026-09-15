@@ -3,7 +3,11 @@ import type { AppProfile, BlockType } from '@org/schema';
 import { Prisma } from '../../generated/prisma/client.js';
 import type { App as AppRow } from '../../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { AppIdConflictError, AppProfileRepository, StoredAppProfile } from './app-profile-repository.port.js';
+import {
+  AppIdConflictError,
+  AppProfileRepository,
+  StoredAppProfile,
+} from './app-profile-repository.port.js';
 
 function toProfile(row: AppRow): AppProfile {
   return {
@@ -33,16 +37,23 @@ export class PrismaAppProfileRepository implements AppProfileRepository {
           name: profile.name,
           voiceTone: profile.voice.tone,
           voiceAudience: profile.voice.audience,
-          voiceDoNots: (profile.voice.doNots ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-          allowedBlockTypes: profile.allowedBlockTypes as unknown as Prisma.InputJsonValue,
+          voiceDoNots: (profile.voice.doNots ??
+            Prisma.JsonNull) as Prisma.InputJsonValue,
+          allowedBlockTypes:
+            profile.allowedBlockTypes as unknown as Prisma.InputJsonValue,
           contentConventions: profile.contentConventions ?? null,
-          designTokens: profile.designTokens as unknown as Prisma.InputJsonValue,
-          exampleArticleIds: (profile.exampleArticleIds ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+          designTokens:
+            profile.designTokens as unknown as Prisma.InputJsonValue,
+          exampleArticleIds: (profile.exampleArticleIds ??
+            Prisma.JsonNull) as Prisma.InputJsonValue,
           apiKeyHash,
         },
       });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
         throw new AppIdConflictError(profile.appId);
       }
       throw error;
@@ -55,7 +66,9 @@ export class PrismaAppProfileRepository implements AppProfileRepository {
   }
 
   async list(): Promise<AppProfile[]> {
-    const rows = await this.prisma.app.findMany({ orderBy: { createdAt: 'asc' } });
+    const rows = await this.prisma.app.findMany({
+      orderBy: { createdAt: 'asc' },
+    });
     return rows.map(toProfile);
   }
 }

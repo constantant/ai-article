@@ -1,94 +1,74 @@
-@for (block of blocks(); track $index) {
-  @switch (block.type) {
-    @case ('heading') {
-      @switch (block.level) {
-        @case (1) {
-          <h1 class="block-heading">{{ block.text }}</h1>
-        }
-        @case (2) {
-          <h2 class="block-heading">{{ block.text }}</h2>
-        }
-        @case (3) {
-          <h3 class="block-heading">{{ block.text }}</h3>
-        }
-        @default {
-          <h4 class="block-heading">{{ block.text }}</h4>
-        }
-      }
-    }
-    @case ('paragraph') {
-      <p class="block-paragraph"><app-rich-text [runs]="block.content" /></p>
-    }
-    @case ('image') {
-      <figure class="block-image">
-        <img [src]="block.src" [alt]="block.alt" />
-        @if (block.caption) {
-          <figcaption>{{ block.caption }}</figcaption>
-        }
-      </figure>
-    }
-    @case ('code') {
-      <pre class="block-code"><code>{{ block.code }}</code></pre>
-    }
-    @case ('quote') {
-      <blockquote class="block-quote">
-        <app-rich-text [runs]="block.content" />
-        @if (block.attribution) {
-          <cite>{{ block.attribution }}</cite>
-        }
-      </blockquote>
-    }
-    @case ('list') {
-      @if (block.ordered) {
-        <ol class="block-list">
-          @for (item of block.items; track $index) {
-            <li><app-rich-text [runs]="item" /></li>
-          }
-        </ol>
-      } @else {
-        <ul class="block-list">
-          @for (item of block.items; track $index) {
-            <li><app-rich-text [runs]="item" /></li>
-          }
-        </ul>
-      }
-    }
-    @case ('callout') {
-      <div class="block-callout" [class]="'variant-' + block.variant">
-        <app-rich-text [runs]="block.content" />
-      </div>
-    }
-    @case ('table') {
-      <table class="block-table">
-        <thead>
-          <tr>
-            @for (header of block.headers; track $index) {
-              <th>{{ header }}</th>
-            }
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of block.rows; track $index) {
-            <tr>
-              @for (cell of row; track $index) {
-                <td>{{ cell }}</td>
-              }
-            </tr>
-          }
-        </tbody>
-      </table>
-    }
-    @case ('embed') {
-      <div class="block-embed">
-        <a [href]="block.url" target="_blank" rel="noopener noreferrer">{{ block.provider }} embed: {{ block.url }}</a>
-      </div>
-    }
-    @case ('divider') {
-      <hr class="block-divider" />
-    }
-    @case ('raw') {
-      <!-- Angular sanitizes this binding by default; it never bypasses sanitization. -->
-      <div class="block-raw" [innerHTML]="block.html"></div>
-    }
+@for (block of blocks(); track $index) { @switch (block.type) { @case
+('heading') { @switch (block.level) { @case (1) {
+<h1 class="block-heading">{{ block.text }}</h1>
+} @case (2) {
+<h2 class="block-heading">{{ block.text }}</h2>
+} @case (3) {
+<h3 class="block-heading">{{ block.text }}</h3>
+} @default {
+<h4 class="block-heading">{{ block.text }}</h4>
+} } } @case ('paragraph') {
+<p class="block-paragraph"><app-rich-text [runs]="block.content" /></p>
+} @case ('image') {
+<figure class="block-image">
+  <img [src]="block.src" [alt]="block.alt" />
+  @if (block.caption) {
+  <figcaption>{{ block.caption }}</figcaption>
   }
-}
+</figure>
+} @case ('code') {
+<pre class="block-code"><code>{{ block.code }}</code></pre>
+} @case ('quote') {
+<blockquote class="block-quote">
+  <app-rich-text [runs]="block.content" />
+  @if (block.attribution) {
+  <cite>{{ block.attribution }}</cite>
+  }
+</blockquote>
+} @case ('list') { @if (block.ordered) {
+<ol class="block-list">
+  @for (item of block.items; track $index) {
+  <li><app-rich-text [runs]="item" /></li>
+  }
+</ol>
+} @else {
+<ul class="block-list">
+  @for (item of block.items; track $index) {
+  <li><app-rich-text [runs]="item" /></li>
+  }
+</ul>
+} } @case ('callout') {
+<div class="block-callout" [class]="'variant-' + block.variant">
+  <app-rich-text [runs]="block.content" />
+</div>
+} @case ('table') {
+<table class="block-table">
+  <thead>
+    <tr>
+      @for (header of block.headers; track $index) {
+      <th>{{ header }}</th>
+      }
+    </tr>
+  </thead>
+  <tbody>
+    @for (row of block.rows; track $index) {
+    <tr>
+      @for (cell of row; track $index) {
+      <td>{{ cell }}</td>
+      }
+    </tr>
+    }
+  </tbody>
+</table>
+} @case ('embed') {
+<div class="block-embed">
+  <a [href]="block.url" target="_blank" rel="noopener noreferrer"
+    >{{ block.provider }} embed: {{ block.url }}</a
+  >
+</div>
+} @case ('divider') {
+<hr class="block-divider" />
+} @case ('raw') {
+<!-- Angular sanitizes this binding by default; it never bypasses sanitization. -->
+<div class="block-raw" [innerHTML]="block.html"></div>
+} } }

@@ -48,14 +48,19 @@ async function bootstrap() {
       )
       .setVersion('1.0')
       .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header' }, 'apiKey')
-      .addApiKey({ type: 'apiKey', name: 'x-admin-key', in: 'header' }, 'adminKey')
+      .addApiKey(
+        { type: 'apiKey', name: 'x-admin-key', in: 'header' },
+        'adminKey',
+      )
       .build(),
   );
   SwaggerModule.setup(`${globalPrefix}/docs`, app, document);
 
   const port = process.env['PORT'] || 3000;
   await app.listen(port);
-  Logger.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);
+  Logger.log(
+    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`,
+  );
   Logger.log(`📖 API docs: http://localhost:${port}/${globalPrefix}/docs`);
 }
 

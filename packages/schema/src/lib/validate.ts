@@ -10,8 +10,7 @@ export interface ValidationError {
 }
 
 export type ValidationResult<T> =
-  | { valid: true; value: T }
-  | { valid: false; errors: ValidationError[] };
+  { valid: true; value: T } | { valid: false; errors: ValidationError[] };
 
 function zodErrors(error: z.ZodError): ValidationError[] {
   return error.issues.map((issue) => ({
@@ -20,7 +19,10 @@ function zodErrors(error: z.ZodError): ValidationError[] {
   }));
 }
 
-function checkAllowedBlockTypes(blocks: Block[], profile: AppProfile): ValidationError[] {
+function checkAllowedBlockTypes(
+  blocks: Block[],
+  profile: AppProfile,
+): ValidationError[] {
   return blocks
     .map((block, index) => ({ index, type: block.type }))
     .filter(({ type }) => !profile.allowedBlockTypes.includes(type))
@@ -47,14 +49,22 @@ function checkAppMatch(appId: string, profile: AppProfile): ValidationError[] {
  * identically by the REST API and by the MCP `validate_article` tool so the
  * two never disagree about whether an article is publishable.
  */
-export function validateArticle(input: unknown, profile: AppProfile): ValidationResult<Article> {
+export function validateArticle(
+  input: unknown,
+  profile: AppProfile,
+): ValidationResult<Article> {
   const parsed = articleSchema.safeParse(input);
   if (!parsed.success) {
     return { valid: false, errors: zodErrors(parsed.error) };
   }
   const article = parsed.data;
-  const errors = [...checkAppMatch(article.appId, profile), ...checkAllowedBlockTypes(article.blocks, profile)];
-  return errors.length > 0 ? { valid: false, errors } : { valid: true, value: article };
+  const errors = [
+    ...checkAppMatch(article.appId, profile),
+    ...checkAllowedBlockTypes(article.blocks, profile),
+  ];
+  return errors.length > 0
+    ? { valid: false, errors }
+    : { valid: true, value: article };
 }
 
 /** Same as validateArticle, but for the pre-id/status shape used on creation. */
@@ -67,6 +77,11 @@ export function validateArticleDraft(
     return { valid: false, errors: zodErrors(parsed.error) };
   }
   const draft = parsed.data;
-  const errors = [...checkAppMatch(draft.appId, profile), ...checkAllowedBlockTypes(draft.blocks, profile)];
-  return errors.length > 0 ? { valid: false, errors } : { valid: true, value: draft };
+  const errors = [
+    ...checkAppMatch(draft.appId, profile),
+    ...checkAllowedBlockTypes(draft.blocks, profile),
+  ];
+  return errors.length > 0
+    ? { valid: false, errors }
+    : { valid: true, value: draft };
 }

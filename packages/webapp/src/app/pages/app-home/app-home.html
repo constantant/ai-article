@@ -7,19 +7,22 @@
   </header>
 
   @if (articles().length === 0) {
-    <p class="empty" i18n="@@appHome.empty">No published articles yet.</p>
+  <p class="empty" i18n="@@appHome.empty">No published articles yet.</p>
   } @else {
-    <ul class="article-list">
-      @for (article of articles(); track article.id) {
-        <li>
-          <a [routerLink]="['/app', profile().appId, 'articles', article.slug]" class="article-card">
-            <span class="article-title">{{ article.title }}</span>
-            @if (article.summary) {
-              <span class="article-summary">{{ article.summary }}</span>
-            }
-          </a>
-        </li>
-      }
-    </ul>
+  <ul class="article-list">
+    @for (article of articles(); track article.id) {
+    <li>
+      <a
+        [routerLink]="['/app', profile().appId, 'articles', article.slug]"
+        class="article-card"
+      >
+        <span class="article-title">{{ article.title }}</span>
+        @if (article.summary) {
+        <span class="article-summary">{{ article.summary }}</span>
+        }
+      </a>
+    </li>
+    }
+  </ul>
   }
 </main>

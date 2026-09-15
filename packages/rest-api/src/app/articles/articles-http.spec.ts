@@ -18,7 +18,9 @@ describe('Articles flow (e2e)', () => {
     process.env['DATABASE_URL'] = db.url;
     process.env['ADMIN_API_KEY'] = ADMIN_KEY;
 
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
     app = moduleRef.createNestApplication();
     app.setGlobalPrefix('api');
     await app.init();
@@ -40,7 +42,13 @@ describe('Articles flow (e2e)', () => {
   it('rejects app registration without the admin key', async () => {
     await request(httpServer)
       .post('/api/apps')
-      .send({ appId: 'x', name: 'X', voice: { tone: 't', audience: 'a' }, allowedBlockTypes: ['paragraph'], designTokens: {} })
+      .send({
+        appId: 'x',
+        name: 'X',
+        voice: { tone: 't', audience: 'a' },
+        allowedBlockTypes: ['paragraph'],
+        designTokens: {},
+      })
       .expect(401);
   });
 
@@ -80,7 +88,10 @@ describe('Articles flow (e2e)', () => {
     });
 
     it('rejects article creation with no api key', async () => {
-      await request(httpServer).post('/api/apps/lifecycle-app/articles').send({}).expect(401);
+      await request(httpServer)
+        .post('/api/apps/lifecycle-app/articles')
+        .send({})
+        .expect(401);
     });
 
     it('rejects article creation with the wrong api key', async () => {
@@ -99,7 +110,13 @@ describe('Articles flow (e2e)', () => {
           appId: 'lifecycle-app',
           slug: 'bad',
           title: 'Bad',
-          blocks: [{ type: 'embed', provider: 'youtube', url: 'https://youtube.com/x' }],
+          blocks: [
+            {
+              type: 'embed',
+              provider: 'youtube',
+              url: 'https://youtube.com/x',
+            },
+          ],
         })
         .expect(201);
 
@@ -121,17 +138,23 @@ describe('Articles flow (e2e)', () => {
 
       expect(created.body.status).toBe('draft');
 
-      await request(httpServer).get('/api/apps/lifecycle-app/articles/by-slug/hello').expect(404);
+      await request(httpServer)
+        .get('/api/apps/lifecycle-app/articles/by-slug/hello')
+        .expect(404);
 
       await request(httpServer)
         .post(`/api/apps/lifecycle-app/articles/${created.body.id}/publish`)
         .set('x-api-key', apiKey)
         .expect(201);
 
-      const published = await request(httpServer).get('/api/apps/lifecycle-app/articles/by-slug/hello').expect(200);
+      const published = await request(httpServer)
+        .get('/api/apps/lifecycle-app/articles/by-slug/hello')
+        .expect(200);
       expect(published.body.status).toBe('published');
 
-      const list = await request(httpServer).get('/api/apps/lifecycle-app/articles').expect(200);
+      const list = await request(httpServer)
+        .get('/api/apps/lifecycle-app/articles')
+        .expect(200);
       expect(list.body.map((a: { slug: string }) => a.slug)).toContain('hello');
     });
   });

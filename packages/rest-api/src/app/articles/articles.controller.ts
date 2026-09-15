@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Headers, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { articleDraftInputSchema, type ArticleDraftInput } from '@org/schema';
 import { ApiKeyGuard } from '../auth/api-key.guard.js';
@@ -15,7 +24,7 @@ export class ArticlesController {
   @Get()
   @ApiOperation({
     summary:
-      'List articles for an app. Public callers (no key) see published only; the app\'s own x-api-key also sees drafts.',
+      "List articles for an app. Public callers (no key) see published only; the app's own x-api-key also sees drafts.",
   })
   list(@Param('appId') appId: string, @Headers('x-api-key') apiKey?: string) {
     return this.articles.listForCaller(appId, apiKey);
@@ -23,13 +32,19 @@ export class ArticlesController {
 
   @Get('by-slug/:slug')
   @ApiOperation({ summary: 'Get one published article by slug (public).' })
-  getPublishedBySlug(@Param('appId') appId: string, @Param('slug') slug: string) {
+  getPublishedBySlug(
+    @Param('appId') appId: string,
+    @Param('slug') slug: string,
+  ) {
     return this.articles.getPublishedBySlug(appId, slug);
   }
 
   @Post('validate')
   @UseGuards(ApiKeyGuard)
-  @ApiOperation({ summary: 'Dry-run validate a draft/article against the app profile without persisting it.' })
+  @ApiOperation({
+    summary:
+      'Dry-run validate a draft/article against the app profile without persisting it.',
+  })
   validate(@Param('appId') appId: string, @Body() input: unknown) {
     return this.articles.validateForPublish(appId, input);
   }
@@ -37,13 +52,20 @@ export class ArticlesController {
   @Post()
   @UseGuards(ApiKeyGuard)
   @ApiOperation({ summary: 'Create a draft article.' })
-  create(@Param('appId') appId: string, @Body(new ZodValidationPipe(articleDraftInputSchema)) input: ArticleDraftInput) {
+  create(
+    @Param('appId') appId: string,
+    @Body(new ZodValidationPipe(articleDraftInputSchema))
+    input: ArticleDraftInput,
+  ) {
     return this.articles.createDraft(appId, input);
   }
 
   @Get(':id')
   @UseGuards(ApiKeyGuard)
-  @ApiOperation({ summary: "Get an article (any status) by id — the authoring tool's own view." })
+  @ApiOperation({
+    summary:
+      "Get an article (any status) by id — the authoring tool's own view.",
+  })
   get(@Param('appId') appId: string, @Param('id') id: string) {
     return this.articles.get(appId, id);
   }
@@ -54,7 +76,8 @@ export class ArticlesController {
   update(
     @Param('appId') appId: string,
     @Param('id') id: string,
-    @Body(new ZodValidationPipe(articlePatchSchema)) patch: Partial<ArticleDraftInput>,
+    @Body(new ZodValidationPipe(articlePatchSchema))
+    patch: Partial<ArticleDraftInput>,
   ) {
     return this.articles.update(appId, id, patch);
   }

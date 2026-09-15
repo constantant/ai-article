@@ -14,12 +14,16 @@ export function errorResult(message: string): CallToolResult {
  * protocol-level failure, so the model sees why the call didn't work (e.g.
  * "article validation failed: block type X not allowed") and can react.
  */
-export async function runTool(fn: () => Promise<unknown>): Promise<CallToolResult> {
+export async function runTool(
+  fn: () => Promise<unknown>,
+): Promise<CallToolResult> {
   try {
     return jsonResult(await fn());
   } catch (error) {
     if (error instanceof RestApiError) {
-      return errorResult(`REST API rejected the request (${error.status}): ${JSON.stringify(error.body)}`);
+      return errorResult(
+        `REST API rejected the request (${error.status}): ${JSON.stringify(error.body)}`,
+      );
     }
     return errorResult(error instanceof Error ? error.message : String(error));
   }

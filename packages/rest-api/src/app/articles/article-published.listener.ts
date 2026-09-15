@@ -10,7 +10,9 @@ export class ArticlePublishedListener implements OnModuleInit {
 
   onModuleInit(): void {
     this.events.onPublished((article: Article) => {
-      this.logger.log(`published ${article.appId}/${article.slug} (${article.id})`);
+      this.logger.log(
+        `published ${article.appId}/${article.slug} (${article.id})`,
+      );
     });
   }
 }

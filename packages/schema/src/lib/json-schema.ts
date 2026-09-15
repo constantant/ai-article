@@ -10,6 +10,7 @@ import { blockSchema } from './blocks.js';
  * API validates against, so no consumer can drift from the contract.
  */
 export const articleJsonSchema = () => z.toJSONSchema(articleSchema);
-export const articleDraftInputJsonSchema = () => z.toJSONSchema(articleDraftInputSchema);
+export const articleDraftInputJsonSchema = () =>
+  z.toJSONSchema(articleDraftInputSchema);
 export const appProfileJsonSchema = () => z.toJSONSchema(appProfileSchema);
 export const blockJsonSchema = () => z.toJSONSchema(blockSchema);

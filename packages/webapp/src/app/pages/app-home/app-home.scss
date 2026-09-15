@@ -50,12 +50,17 @@
   gap: 0.35rem;
   padding: 1.25rem 1.5rem;
   border-radius: var(--app-radius-md, 12px);
-  border: 1px solid color-mix(in srgb, var(--app-color-on-surface, #000) 15%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--app-color-on-surface, #000) 15%, transparent);
   text-decoration: none;
   color: inherit;
 
   &:hover {
-    background: color-mix(in srgb, var(--app-color-primary-container, transparent) 30%, transparent);
+    background: color-mix(
+      in srgb,
+      var(--app-color-primary-container, transparent) 30%,
+      transparent
+    );
   }
 }
 

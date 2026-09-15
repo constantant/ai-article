@@ -9,7 +9,10 @@ async function main() {
   const config = loadConfig();
   const client = new RestClient(config);
 
-  const server = new McpServer({ name: 'ai-article-platform', version: '0.1.0' });
+  const server = new McpServer({
+    name: 'ai-article-platform',
+    version: '0.1.0',
+  });
   registerTools(server, client);
   registerResources(server, client);
 
@@ -17,7 +20,9 @@ async function main() {
   await server.connect(transport);
 
   // stdout is the MCP transport's wire — never console.log; stderr is safe for diagnostics.
-  console.error(`ai-article-platform MCP server connected (REST API: ${config.restApiBaseUrl})`);
+  console.error(
+    `ai-article-platform MCP server connected (REST API: ${config.restApiBaseUrl})`,
+  );
 }
 
 main().catch((error: unknown) => {

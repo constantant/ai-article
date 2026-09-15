@@ -1,4 +1,10 @@
-import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { matchesApiKey } from '../common/api-key.js';
 import type { AppProfileRepository } from '../storage/app-profile-repository.port.js';
@@ -11,7 +17,9 @@ import { APP_PROFILE_REPOSITORY } from '../storage/tokens.js';
  */
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
-  constructor(@Inject(APP_PROFILE_REPOSITORY) private readonly apps: AppProfileRepository) {}
+  constructor(
+    @Inject(APP_PROFILE_REPOSITORY) private readonly apps: AppProfileRepository,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();

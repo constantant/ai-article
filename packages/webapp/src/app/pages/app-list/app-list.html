@@ -1,18 +1,18 @@
 <main class="app-list-page">
   <h1 i18n="@@appList.title">Registered apps</h1>
   <p class="lede" i18n="@@appList.lede">
-    Each app below has its own voice and visual style. The article content is the same shape everywhere — only the
-    presentation changes.
+    Each app below has its own voice and visual style. The article content is
+    the same shape everywhere — only the presentation changes.
   </p>
 
   <ul class="app-list">
     @for (app of apps(); track app.appId) {
-      <li>
-        <a [routerLink]="['/app', app.appId]" class="app-card">
-          <span class="app-name">{{ app.name }}</span>
-          <span class="app-tone">{{ app.voice.tone }}</span>
-        </a>
-      </li>
+    <li>
+      <a [routerLink]="['/app', app.appId]" class="app-card">
+        <span class="app-name">{{ app.name }}</span>
+        <span class="app-tone">{{ app.voice.tone }}</span>
+      </a>
+    </li>
     }
   </ul>
 </main>

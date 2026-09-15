@@ -1,9 +1,16 @@
-@for (run of runs(); track $index) {
-  @if (run.href) {
-    <a [href]="run.href" [class.rt-bold]="run.bold" [class.rt-italic]="run.italic" [class.rt-code]="run.code">{{
-      run.text
-    }}</a>
-  } @else {
-    <span [class.rt-bold]="run.bold" [class.rt-italic]="run.italic" [class.rt-code]="run.code">{{ run.text }}</span>
-  }
-}
+@for (run of runs(); track $index) { @if (run.href) {
+<a
+  [href]="run.href"
+  [class.rt-bold]="run.bold"
+  [class.rt-italic]="run.italic"
+  [class.rt-code]="run.code"
+  >{{ run.text }}</a
+>
+} @else {
+<span
+  [class.rt-bold]="run.bold"
+  [class.rt-italic]="run.italic"
+  [class.rt-code]="run.code"
+  >{{ run.text }}</span
+>
+} }

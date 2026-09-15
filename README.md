@@ -15,14 +15,14 @@ from one system.
 
 ## Packages
 
-| Package | What it is |
-|---|---|
-| [`packages/schema`](packages/schema) | Zod models (`Article`, `Block` union, `AppProfile`) and `validateArticle` — the single source of truth every other package imports directly, plus a native JSON Schema export for MCP. |
-| [`packages/rest-api`](packages/rest-api) | NestJS + Prisma/SQLite. Multi-tenant article storage behind a repository interface (so a future app can use Postgres/Mongo without touching the service layer), per-app API-key auth, Swagger docs. |
+| Package                                      | What it is                                                                                                                                                                                                                                   |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`packages/schema`](packages/schema)         | Zod models (`Article`, `Block` union, `AppProfile`) and `validateArticle` — the single source of truth every other package imports directly, plus a native JSON Schema export for MCP.                                                       |
+| [`packages/rest-api`](packages/rest-api)     | NestJS + Prisma/SQLite. Multi-tenant article storage behind a repository interface (so a future app can use Postgres/Mongo without touching the service layer), per-app API-key auth, Swagger docs.                                          |
 | [`packages/mcp-server`](packages/mcp-server) | An MCP server (`@modelcontextprotocol/sdk`) exposing the REST API as tools (`list_apps`, `get_app_profile`, `create_article`, `validate_article`, `publish_article`, ...) and resources (live JSON Schemas, app profiles, example articles). |
-| [`packages/skill`](packages/skill) | `SKILL.md` — the authoring workflow a model follows: resolve the app, read its profile, draft within its allowed block types, validate, then publish. |
-| [`packages/webapp`](packages/webapp) | Angular 22, SSR, Material 3, real `@angular/localize` i18n. Renders any app's articles by mapping each `AppProfile`'s design tokens to CSS custom properties per request — no per-app code, just per-app data. |
-| [`packages/infra`](packages/infra) | CDK (TypeScript). Deploys `rest-api` and `webapp` to AWS Lambda (container image, Function URLs) backed by DynamoDB, plus the GitHub OIDC deploy role for CI. |
+| [`packages/skill`](packages/skill)           | `SKILL.md` — the authoring workflow a model follows: resolve the app, read its profile, draft within its allowed block types, validate, then publish.                                                                                        |
+| [`packages/webapp`](packages/webapp)         | Angular 22, SSR, Material 3, real `@angular/localize` i18n. Renders any app's articles by mapping each `AppProfile`'s design tokens to CSS custom properties per request — no per-app code, just per-app data.                               |
+| [`packages/infra`](packages/infra)           | CDK (TypeScript). Deploys `rest-api` and `webapp` to AWS Lambda (container image, Function URLs) backed by DynamoDB, plus the GitHub OIDC deploy role for CI.                                                                                |
 
 ## How it fits together
 
@@ -120,7 +120,9 @@ here are fine):
   "mcpServers": {
     "ai-article-platform": {
       "command": "node",
-      "args": ["E:\\Konstantin\\Work\\ai-article\\packages\\mcp-server\\dist\\main.js"],
+      "args": [
+        "E:\\Konstantin\\Work\\ai-article\\packages\\mcp-server\\dist\\main.js"
+      ],
       "env": {
         "REST_API_BASE_URL": "http://localhost:3000/api",
         "APP_API_KEYS": "{\"tech-blog\":\"<key>\",\"lifestyle\":\"<key>\"}"
@@ -142,7 +144,7 @@ deployment (its `ADMIN_API_KEY` is in AWS Secrets Manager under
 `ai-article/admin-api-key`, not your local `.env`).
 
 **3. Install the Skill** so Claude actually follows the authoring workflow (the MCP
-tools alone don't tell it *how* to use them):
+tools alone don't tell it _how_ to use them):
 
 ```sh
 mkdir -p .claude/skills/article-authoring
@@ -152,8 +154,8 @@ cp packages/skill/SKILL.md .claude/skills/article-authoring/SKILL.md
 Use `.claude/skills/` for this repo only, or `~/.claude/skills/article-authoring/` to
 make it available from any project. Restart Claude Code to pick it up.
 
-**Verify the connection**: ask Claude something like *"using the article-authoring
-skill, list the registered apps and draft a short article for tech-blog"* — you
+**Verify the connection**: ask Claude something like _"using the article-authoring
+skill, list the registered apps and draft a short article for tech-blog"_ — you
 should see it call `list_apps`, then `get_app_profile`, before writing anything.
 
 **4. Start the webapp** and browse the demo apps:

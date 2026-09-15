@@ -22,8 +22,18 @@ import {
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import type { Construct } from 'constructs';
 
-/** repo:OWNER/NAME — used to scope the GitHub OIDC trust condition to this repo/branch only. */
-const GITHUB_REPO = 'constantant/ai-article';
+/**
+ * This account's GitHub OIDC tokens embed numeric GitHub user/repo IDs in the
+ * `sub` claim — NOT the plain `repo:owner/name` format GitHub's own docs
+ * show as the default. Confirmed via CloudTrail on a real (denied)
+ * AssumeRoleWithWebIdentity call: the actual claim was
+ * `repo:constantant@5537730/ai-article@1371326609:ref:refs/heads/main`.
+ * `5537730` = constantant's GitHub user ID, `1371326609` = this repo's ID —
+ * both stable, but not derivable at synth time without a GitHub API call, so
+ * hardcoded here rather than composed from separate owner/name constants.
+ */
+const GITHUB_OIDC_SUB =
+  'repo:constantant@5537730/ai-article@1371326609:ref:refs/heads/main';
 /** Already provisioned in this account by a prior project — reused, not recreated. */
 const GITHUB_OIDC_PROVIDER_ARN = (account: string) =>
   `arn:aws:iam::${account}:oidc-provider/token.actions.githubusercontent.com`;
@@ -145,7 +155,7 @@ export class AiArticleStack extends Stack {
       assumedBy: new OpenIdConnectPrincipal(githubOidcProvider, {
         StringEquals: {
           'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com',
-          'token.actions.githubusercontent.com:sub': `repo:${GITHUB_REPO}:ref:refs/heads/main`,
+          'token.actions.githubusercontent.com:sub': GITHUB_OIDC_SUB,
         },
       }),
       // `cdk deploy` (including its Docker asset build/push) only ever needs

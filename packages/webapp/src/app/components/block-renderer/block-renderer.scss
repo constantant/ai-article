@@ -32,7 +32,11 @@
 }
 
 .block-code {
-  background: color-mix(in srgb, var(--app-color-on-surface, #000) 6%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--app-color-on-surface, #000) 6%,
+    transparent
+  );
   border-radius: var(--app-radius-md, 8px);
   padding: 1em;
   overflow-x: auto;
@@ -64,8 +68,13 @@
   border-radius: var(--app-radius-md, 8px);
   padding: 1em 1.25em;
   margin: 1.5em 0;
-  border: 1px solid color-mix(in srgb, var(--app-color-primary, currentColor) 30%, transparent);
-  background: color-mix(in srgb, var(--app-color-primary-container, transparent) 40%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--app-color-primary, currentColor) 30%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--app-color-primary-container, transparent) 40%,
+    transparent
+  );
 
   &.variant-warning {
     border-color: color-mix(in srgb, orange 50%, transparent);
@@ -89,7 +98,8 @@
   td {
     text-align: left;
     padding: 0.5em 0.75em;
-    border-bottom: 1px solid color-mix(in srgb, var(--app-color-on-surface, #000) 15%, transparent);
+    border-bottom: 1px solid
+      color-mix(in srgb, var(--app-color-on-surface, #000) 15%, transparent);
   }
 }
 
@@ -97,11 +107,13 @@
   margin: 1.5em 0;
   padding: 1em;
   border-radius: var(--app-radius-md, 8px);
-  border: 1px dashed color-mix(in srgb, var(--app-color-on-surface, #000) 25%, transparent);
+  border: 1px dashed
+    color-mix(in srgb, var(--app-color-on-surface, #000) 25%, transparent);
 }
 
 .block-divider {
   border: none;
-  border-top: 1px solid color-mix(in srgb, var(--app-color-on-surface, #000) 15%, transparent);
+  border-top: 1px solid
+    color-mix(in srgb, var(--app-color-on-surface, #000) 15%, transparent);
   margin: 2em 0;
 }

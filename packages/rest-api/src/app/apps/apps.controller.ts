@@ -17,14 +17,20 @@ export class AppsController {
   }
 
   @Get(':appId')
-  @ApiOperation({ summary: "Get one app's profile (voice, allowed block types, design tokens)." })
+  @ApiOperation({
+    summary:
+      "Get one app's profile (voice, allowed block types, design tokens).",
+  })
   get(@Param('appId') appId: string) {
     return this.apps.get(appId);
   }
 
   @Post()
   @UseGuards(AdminGuard)
-  @ApiOperation({ summary: 'Register a new app. Requires x-admin-key. Returns the API key once.' })
+  @ApiOperation({
+    summary:
+      'Register a new app. Requires x-admin-key. Returns the API key once.',
+  })
   create(@Body(new ZodValidationPipe(appProfileSchema)) profile: AppProfile) {
     return this.apps.create(profile);
   }

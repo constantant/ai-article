@@ -17,8 +17,18 @@ const demoProfiles: AppProfile[] = [
       audience: 'software engineers',
       doNots: ['marketing speak', 'unexplained jargon without a code example'],
     },
-    allowedBlockTypes: ['heading', 'paragraph', 'code', 'list', 'callout', 'quote', 'divider', 'image'],
-    contentConventions: 'Open with the problem, not a preamble. Prefer code blocks over prose when showing behavior.',
+    allowedBlockTypes: [
+      'heading',
+      'paragraph',
+      'code',
+      'list',
+      'callout',
+      'quote',
+      'divider',
+      'image',
+    ],
+    contentConventions:
+      'Open with the problem, not a preamble. Prefer code blocks over prose when showing behavior.',
     designTokens: {
       'color-surface': '#0b0f1a',
       'color-on-surface': '#e2e8f0',
@@ -37,8 +47,18 @@ const demoProfiles: AppProfile[] = [
       audience: 'general readers looking for inspiration',
       doNots: ['dense technical detail', 'code or command-line examples'],
     },
-    allowedBlockTypes: ['heading', 'paragraph', 'image', 'quote', 'list', 'callout', 'divider', 'embed'],
-    contentConventions: 'Open with a relatable scene or anecdote. Favor short paragraphs and a generous lead image.',
+    allowedBlockTypes: [
+      'heading',
+      'paragraph',
+      'image',
+      'quote',
+      'list',
+      'callout',
+      'divider',
+      'embed',
+    ],
+    contentConventions:
+      'Open with a relatable scene or anecdote. Favor short paragraphs and a generous lead image.',
     designTokens: {
       'color-surface': '#fffaf3',
       'color-on-surface': '#3f2d1d',
@@ -53,11 +73,15 @@ const demoProfiles: AppProfile[] = [
 
 async function main() {
   const prisma = new PrismaClient({
-    adapter: new PrismaLibSql({ url: process.env['DATABASE_URL'] ?? 'file:./dev.db' }),
+    adapter: new PrismaLibSql({
+      url: process.env['DATABASE_URL'] ?? 'file:./dev.db',
+    }),
   });
 
   for (const profile of demoProfiles) {
-    const existing = await prisma.app.findUnique({ where: { id: profile.appId } });
+    const existing = await prisma.app.findUnique({
+      where: { id: profile.appId },
+    });
     if (existing) {
       console.log(`skip "${profile.appId}" — already seeded`);
       continue;

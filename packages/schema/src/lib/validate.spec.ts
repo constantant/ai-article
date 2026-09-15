@@ -36,14 +36,20 @@ describe('validateArticle', () => {
 
   it('rejects a block type the app profile does not allow', () => {
     const article = validArticle();
-    article.blocks.push({ type: 'raw', html: '<script>evil()</script>' } as never);
+    article.blocks.push({
+      type: 'raw',
+      html: '<script>evil()</script>',
+    } as never);
 
     const result = validateArticle(article, techBlogProfile);
 
     expect(result.valid).toBe(false);
     if (!result.valid) {
       expect(result.errors).toEqual([
-        expect.objectContaining({ path: 'blocks[2]', message: expect.stringContaining('"raw"') }),
+        expect.objectContaining({
+          path: 'blocks[2]',
+          message: expect.stringContaining('"raw"'),
+        }),
       ]);
     }
   });
@@ -82,7 +88,11 @@ describe('validateArticleDraft', () => {
 
   it('rejects a draft using a block type outside the profile', () => {
     const { id, status, createdAt, updatedAt, ...draft } = validArticle();
-    (draft as { blocks: unknown[] }).blocks.push({ type: 'embed', provider: 'youtube', url: 'https://youtube.com/x' });
+    (draft as { blocks: unknown[] }).blocks.push({
+      type: 'embed',
+      provider: 'youtube',
+      url: 'https://youtube.com/x',
+    });
 
     const result = validateArticleDraft(draft, techBlogProfile);
 
