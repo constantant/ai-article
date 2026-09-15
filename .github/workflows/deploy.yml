@@ -24,7 +24,7 @@ jobs:
           node-version: 24
           cache: 'npm'
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci
 
       # No long-lived AWS keys: the runner exchanges its OIDC token for
       # temporary credentials, scoped to this repo+branch by the role's

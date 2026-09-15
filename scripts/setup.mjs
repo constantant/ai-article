@@ -3,7 +3,7 @@
 // Run from the repo root: `node scripts/setup.mjs` (or `npm run setup`).
 //
 // What it does, equivalent to packages/webapp/README.md steps 1, 3 and 4:
-//   1. npm install (with the --legacy-peer-deps retry this repo needs)
+//   1. npm install
 //   2. build the mcp-server connector
 //   3. write/merge the MCP config for Claude Code and/or Claude Desktop
 //   4. install the article-authoring skill
@@ -213,8 +213,7 @@ async function main() {
   }
 
   // --- 1. install deps ---
-  // This workspace hits an npm arborist bug on a plain install; --legacy-peer-deps avoids it.
-  run('npm', ['install', '--legacy-peer-deps']);
+  run('npm', ['install']);
 
   // --- 2. build the connector ---
   run('npx', ['nx', 'build', 'mcp-server']);

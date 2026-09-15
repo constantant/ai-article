@@ -12,7 +12,7 @@ COPY package.json package-lock.json ./
 COPY packages/schema/package.json packages/schema/package.json
 COPY packages/rest-api/package.json packages/rest-api/package.json
 COPY packages/mcp-server/package.json packages/mcp-server/package.json
-RUN npm ci --legacy-peer-deps
+RUN npm ci
 
 COPY . .
 # The generated Prisma client isn't committed (gitignored) — it must exist on

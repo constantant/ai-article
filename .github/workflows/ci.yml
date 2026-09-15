@@ -26,7 +26,7 @@ jobs:
           node-version: 24
           cache: 'npm'
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci
 
       # rest-api's Prisma client is generated into a gitignored directory
       # (src/generated/prisma); a fresh checkout doesn't have it, so build/

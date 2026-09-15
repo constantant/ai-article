@@ -63,7 +63,7 @@ your setup)</summary>
 ```sh
 git clone <this-repository-url>
 cd ai-article
-npm install    # if this hits an arborist "Cannot read properties of null" error, retry with --legacy-peer-deps
+npm install
 npx nx build mcp-server
 ```
 

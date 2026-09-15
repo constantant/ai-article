@@ -46,7 +46,7 @@ Claude (Skill) --MCP--> mcp-server --HTTP--> rest-api --Prisma--> SQLite
 ## Getting started
 
 ```sh
-npm install # if this hits an arborist "Cannot read properties of null" error, retry with --legacy-peer-deps
+npm install
 cp packages/rest-api/.env.example packages/rest-api/.env
 ```
 
