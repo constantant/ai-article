@@ -45,6 +45,8 @@ Thumbs.db
 
 .claude/worktrees
 .claude/settings.local.json
+# installed by scripts/setup.mjs — a copy of packages/skill/SKILL.md
+.claude/skills/article-authoring
 .nx/polygraph
 .nx/self-healing
 .nx/migrate-runs
@@ -54,3 +56,6 @@ test-output
 .angular
 
 __screenshots__/
+
+# written by scripts/setup.mjs — contains a real ADMIN_API_KEY
+/.mcp.json

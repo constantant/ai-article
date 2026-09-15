@@ -29,6 +29,34 @@ computer.
 - [Node.js](https://nodejs.org) 24 or later
 - Git
 - Claude Code or Claude Desktop
+- The shared **test-environment admin key** (`ADMIN_API_KEY`) — ask whoever gave
+  you this guide. You need it once, to let your Claude register a new app; you
+  won't need it again after that for authoring.
+
+## Quick setup (recommended)
+
+```sh
+git clone <this-repository-url>
+cd ai-article
+npm run setup
+```
+
+This one command installs dependencies, builds the connector, registers it with
+Claude, and installs the authoring skill — it asks a few short questions (admin
+key, which Claude client(s), and for Claude Code, **global** — available in
+every project on this machine, not just this repo folder — vs. project/local
+scope) and merges into any existing config instead of overwriting it. It's safe
+to re-run.
+
+Non-interactive use:
+`npm run setup -- --admin-key=... --client=both --code-scope=g --skill-scope=t`.
+
+Once it finishes, **fully restart** Claude Code / Claude Desktop and skip to
+[step 5](#5-try-it).
+
+<details>
+<summary>Manual setup (if you'd rather do it by hand, or the script doesn't fit
+your setup)</summary>
 
 ## 1. Get the code and build the connector
 
@@ -114,6 +142,8 @@ cp packages/skill/SKILL.md .claude/skills/article-authoring/SKILL.md
 (Use `~/.claude/skills/article-authoring/` instead of `.claude/skills/` if you want
 this available from any project, not just this folder.) Restart Claude Code to pick
 it up.
+
+</details>
 
 ## 5. Try it
 

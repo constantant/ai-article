@@ -2,7 +2,9 @@
   "name": "@org/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "setup": "node scripts/setup.mjs"
+  },
   "private": true,
   "devDependencies": {
     "@angular-devkit/core": "~22.1.0",
