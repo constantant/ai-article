@@ -1,0 +1,44 @@
+{
+  "name": "@org/infra",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "targets": {
+      "typecheck": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "tsc --noEmit -p tsconfig.json",
+          "cwd": "packages/infra"
+        }
+      },
+      "synth": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "cdk synth",
+          "cwd": "packages/infra"
+        }
+      },
+      "diff": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "cdk diff",
+          "cwd": "packages/infra"
+        }
+      },
+      "deploy": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "cdk deploy",
+          "cwd": "packages/infra"
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.269.0",
+    "constructs": "^10.8.1"
+  },
+  "devDependencies": {
+    "aws-cdk": "^2.1141.0"
+  }
+}

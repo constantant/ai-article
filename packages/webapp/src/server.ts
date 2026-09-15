@@ -13,11 +13,14 @@ const browserDistFolder = resolve(serverDistFolder, '../browser');
 
 const app = express();
 const port = process.env['PORT'] || 4000;
-// Local test app, not exposed publicly — the Host header check compares
-// hostname only (no port), so this covers any port it's served on.
-const angularApp = new AngularNodeAppEngine({
-  allowedHosts: ['localhost', '127.0.0.1'],
-});
+// The Host header check compares hostname only (no port). Locally that's
+// localhost/127.0.0.1; behind a Lambda Function URL in production, CDK sets
+// ALLOWED_HOSTS to that function's actual hostname.
+const allowedHosts = (process.env['ALLOWED_HOSTS'] ?? 'localhost,127.0.0.1')
+  .split(',')
+  .map((host) => host.trim())
+  .filter(Boolean);
+const angularApp = new AngularNodeAppEngine({ allowedHosts });
 
 /**
  * Example Express Rest API endpoints can be defined here.

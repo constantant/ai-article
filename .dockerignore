@@ -1,0 +1,19 @@
+node_modules
+**/node_modules
+dist
+**/dist
+out-tsc
+**/out-tsc
+.git
+**/*.db
+**/*.db-journal
+**/.env
+packages/rest-api/src/generated
+.nx
+.vscode
+.idea
+# packages/infra/cdk.out lives inside this same directory, which is also the
+# CDK Docker image asset's source directory — without this, CDK's asset
+# staging step recursively copies cdk.out into itself.
+cdk.out
+**/cdk.out

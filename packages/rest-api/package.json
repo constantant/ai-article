@@ -66,6 +66,8 @@
     }
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1132.0",
+    "@aws-sdk/lib-dynamodb": "^3.1132.0",
     "@libsql/client": "^0.18.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
@@ -85,6 +87,7 @@
   "devDependencies": {
     "@nestjs/testing": "^11.0.0",
     "@types/supertest": "^7.2.1",
+    "aws-sdk-client-mock": "^4.1.0",
     "supertest": "^7.2.2",
     "tsx": "^4.23.13"
   }

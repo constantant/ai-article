@@ -29,6 +29,15 @@ async function bootstrap() {
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
 
+  // webapp and rest-api each get their own unpredictable Lambda Function URL
+  // origin (no shared domain), and the webapp's browser-side code re-fetches
+  // on every client-side navigation, not just the initial SSR render — so
+  // this is a genuine cross-origin API, not an incidental one. No cookies/
+  // credentials are used (auth is the explicit x-api-key/x-admin-key headers
+  // already enforced by the guards), so reflecting any origin doesn't weaken
+  // anything those guards already enforce.
+  app.enableCors({ origin: true });
+
   const document = SwaggerModule.createDocument(
     app,
     new DocumentBuilder()
