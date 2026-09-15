@@ -1,109 +1,100 @@
-# New Nx Repository
+# AI Article Platform
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+A system for authoring web articles with an AI (Claude or another model), publishing
+them through an MCP server backed by a REST API, and rendering them correctly in the
+house style of whichever destination app they're written for.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+The core idea: **content and presentation are strictly separated.** An article is a
+versioned tree of typed blocks (heading, paragraph, code, image, ...) — never raw
+HTML or CSS. Each destination app owns its own voice, allowed block types, and design
+tokens. The Skill reads an app's profile before drafting so the writing fits; the
+webapp reads the same profile to theme the render. Neither side needs to know
+anything about the other's internals, which is what lets the exact same content
+schema produce a dark, terse technical blog and a warm, editorial lifestyle magazine
+from one system.
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/docs/technologies/typescript/introduction?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+## Packages
 
-🚀 If you haven't connected to Nx Cloud yet, [complete your setup here](https://cloud.nx.app/get-started). Get faster builds with remote caching, distributed task execution, and self-healing CI. [See how your workspace can benefit](#nx-cloud).
+| Package | What it is |
+|---|---|
+| [`packages/schema`](packages/schema) | Zod models (`Article`, `Block` union, `AppProfile`) and `validateArticle` — the single source of truth every other package imports directly, plus a native JSON Schema export for MCP. |
+| [`packages/rest-api`](packages/rest-api) | NestJS + Prisma/SQLite. Multi-tenant article storage behind a repository interface (so a future app can use Postgres/Mongo without touching the service layer), per-app API-key auth, Swagger docs. |
+| [`packages/mcp-server`](packages/mcp-server) | An MCP server (`@modelcontextprotocol/sdk`) exposing the REST API as tools (`list_apps`, `get_app_profile`, `create_article`, `validate_article`, `publish_article`, ...) and resources (live JSON Schemas, app profiles, example articles). |
+| [`packages/skill`](packages/skill) | `SKILL.md` — the authoring workflow a model follows: resolve the app, read its profile, draft within its allowed block types, validate, then publish. |
+| [`packages/webapp`](packages/webapp) | Angular 22, SSR, Material 3, real `@angular/localize` i18n. Renders any app's articles by mapping each `AppProfile`'s design tokens to CSS custom properties per request — no per-app code, just per-app data. |
 
-## Generate a library
+## How it fits together
+
+```
+Claude (Skill) --MCP--> mcp-server --HTTP--> rest-api --Prisma--> SQLite
+                                                  |
+                                            GET (public)
+                                                  v
+                                              webapp (SSR)
+```
+
+1. The Skill asks `get_app_profile` for the target app's voice, allowed block types,
+   and conventions before writing anything.
+2. It drafts an article as a block array, calls `validate_article` to catch schema or
+   policy violations early, then `create_article` and `publish_article`.
+3. The webapp fetches published articles straight from the REST API on each request
+   and renders them through one generic `BlockRendererComponent`, themed entirely by
+   that app's design tokens (set as CSS custom properties server-side, so there's no
+   flash of the wrong app's colors).
+
+## Getting started
 
 ```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
+npm install # if this hits an arborist "Cannot read properties of null" error, retry with --legacy-peer-deps
+cp packages/rest-api/.env.example packages/rest-api/.env
 ```
 
-## Run tasks
-
-To build the library use:
+**1. Start the REST API** (SQLite, seeds two demo apps with deliberately different
+voice/design tokens — a dark/technical "tech-blog" and a warm/editorial "lifestyle"
+magazine):
 
 ```sh
-npx nx run pkg1:build
+cd packages/rest-api
+npx prisma generate       # generated client is gitignored
+npx prisma migrate deploy # applies the committed migrations
+npx prisma db seed
+cd ../..
+npx nx serve rest-api
 ```
 
-To run any task with Nx use:
+The seed script prints an `x-api-key` for each demo app — save these, the MCP server
+needs them to write.
+
+**2. Configure the MCP server** with those keys and point your MCP client (Claude
+Code, Claude Desktop, ...) at it:
+
+```json
+{
+  "mcpServers": {
+    "ai-article-platform": {
+      "command": "node",
+      "args": ["packages/mcp-server/dist/main.js"],
+      "env": {
+        "REST_API_BASE_URL": "http://localhost:3000/api",
+        "APP_API_KEYS": "{\"tech-blog\":\"<key>\",\"lifestyle\":\"<key>\"}"
+      }
+    }
+  }
+}
+```
+
+**3. Start the webapp** and browse the demo apps:
 
 ```sh
-npx nx run <project-name>:<target>
+npx nx build webapp   # localizes the en/es bundles
+node dist/packages/webapp/server/server.mjs
 ```
 
-These targets are either [inferred automatically](https://nx.dev/docs/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+Then visit `/en/app/tech-blog` and `/es/app/lifestyle` to see the same block schema
+rendered in two different house styles and languages.
 
-[More about running tasks in the docs &raquo;](https://nx.dev/docs/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Versioning and releasing
-
-To version and release the library use
-
-```
-npx nx release
-```
-
-Pass `--dry-run` to see what would happen without actually releasing the library.
-
-[Learn more about Nx release &raquo;](https://nx.dev/docs/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Keep TypeScript project references up to date
-
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
-
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
+## Running checks
 
 ```sh
-npx nx sync
+npx nx run-many -t typecheck,build,lint,test -p schema,rest-api,mcp-server,webapp
 ```
-
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
-
-```sh
-npx nx sync:check
-```
-
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
-
-## Nx Cloud
-
-Nx Cloud ensures a [fast and scalable CI](https://nx.dev/nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/docs/features/ci-features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/docs/features/ci-features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/docs/features/ci-features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/docs/features/ci-features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Set up CI (non-Github Actions CI)
-
-**Note:** This is only required if your CI provider is not GitHub Actions.
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
-```
-
-[Learn more about Nx on CI](https://nx.dev/docs/features/ci-features?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/docs/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## 🔗 Learn More
-
-- [Nx Documentation](https://nx.dev/docs)
-- [Crafting Your Workspace Tutorial](https://nx.dev/docs/getting-started/tutorials/crafting-your-workspace)
-- [Module Boundaries](https://nx.dev/docs/features/enforce-module-boundaries)
-- [Releasing Packages](https://nx.dev/docs/features/manage-releases)
-- [Nx Plugins](https://nx.dev/docs/concepts/nx-plugins)
-- [Nx Cloud](https://nx.dev/nx-cloud)
-
-## 💬 Community
-
-Join the Nx community:
-
-- [Discord](https://go.nx.dev/community)
-- [X (Twitter)](https://twitter.com/nxdevtools)
-- [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [YouTube](https://www.youtube.com/@nxdevtools)
-- [Blog](https://nx.dev/blog)

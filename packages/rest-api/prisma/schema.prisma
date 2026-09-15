@@ -1,0 +1,46 @@
+// Prisma schema for the REST API's SQLite storage adapter.
+// This is one implementation of the ArticleRepository/AppProfileRepository
+// ports (see src/app/storage) — the service layer never imports this file
+// directly, so swapping in a Mongo/Postgres adapter later doesn't touch it.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model App {
+  id                 String    @id
+  name               String
+  voiceTone          String
+  voiceAudience      String
+  voiceDoNots        Json?
+  allowedBlockTypes  Json
+  contentConventions String?
+  designTokens       Json
+  exampleArticleIds  Json?
+  apiKeyHash         String
+  articles           Article[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model Article {
+  id            String   @id @default(cuid())
+  appId         String
+  app           App      @relation(fields: [appId], references: [id])
+  slug          String
+  title         String
+  summary       String?
+  status        String
+  schemaVersion Int      @default(1)
+  meta          Json?
+  blocks        Json
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([appId, slug])
+}

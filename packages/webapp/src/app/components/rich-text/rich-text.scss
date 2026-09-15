@@ -1,0 +1,15 @@
+.rt-bold {
+  font-weight: 700;
+}
+
+.rt-italic {
+  font-style: italic;
+}
+
+.rt-code {
+  font-family: var(--app-font-family-code, ui-monospace, monospace);
+  background: color-mix(in srgb, var(--app-color-on-surface, currentColor) 10%, transparent);
+  padding: 0.1em 0.35em;
+  border-radius: 0.25em;
+  font-size: 0.9em;
+}

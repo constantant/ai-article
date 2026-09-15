@@ -1,0 +1,105 @@
+{
+  "name": "webapp",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "packages/webapp/src",
+  "tags": [],
+  "i18n": {
+    "sourceLocale": "en",
+    "locales": {
+      "es": "packages/webapp/src/locale/messages.es.xlf"
+    }
+  },
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/packages/webapp",
+        "browser": "packages/webapp/src/main.ts",
+        "tsConfig": "packages/webapp/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "packages/webapp/public"
+          }
+        ],
+        "styles": ["packages/webapp/src/styles.scss"],
+        "server": "packages/webapp/src/main.server.ts",
+        "ssr": {
+          "entry": "packages/webapp/src/server.ts"
+        },
+        "outputMode": "server"
+      },
+      "configurations": {
+        "production": {
+          "localize": true,
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "4kb",
+              "maximumError": "8kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      }
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "defaultConfiguration": "development",
+      "configurations": {
+        "production": {
+          "buildTarget": "webapp:build:production"
+        },
+        "development": {
+          "buildTarget": "webapp:build:development"
+        }
+      }
+    },
+    "extract-i18n": {
+      "executor": "@angular/build:extract-i18n",
+      "options": {
+        "buildTarget": "webapp:build:development",
+        "outputPath": "packages/webapp/src/locale",
+        "outFile": "messages.xlf"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:noop",
+      "dependsOn": ["build"]
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "watch": false
+      }
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "webapp:build",
+        "staticFilePath": "dist/packages/webapp/browser",
+        "spa": true
+      }
+    }
+  }
+}

@@ -2,6 +2,19 @@
   "extends": "./tsconfig.base.json",
   "compileOnSave": false,
   "files": [],
-  "references": [],
+  "references": [
+    {
+      "path": "./packages/schema"
+    },
+    {
+      "path": "./packages/rest-api"
+    },
+    {
+      "path": "./packages/mcp-server"
+    },
+    {
+      "path": "./packages/webapp"
+    }
+  ],
   "compilerOptions": {}
 }

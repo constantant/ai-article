@@ -1,0 +1,14 @@
+<main class="article-page">
+  <a [routerLink]="['/app', profile().appId]" class="back-link" i18n="@@articlePage.back">&larr; {{ profile().name }}</a>
+
+  <article>
+    <header class="article-header">
+      <h1>{{ article().title }}</h1>
+      @if (article().summary) {
+        <p class="article-summary">{{ article().summary }}</p>
+      }
+    </header>
+
+    <app-block-renderer [blocks]="article().blocks" />
+  </article>
+</main>

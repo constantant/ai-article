@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="app.brand" datatype="html">
+        <source>AI Article Platform</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">packages/webapp/src/app/app.html</context>
+          <context context-type="linenumber">2,5</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="appHome.back" datatype="html">
+        <source>← All apps</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">packages/webapp/src/app/pages/app-home/app-home.html</context>
+          <context context-type="linenumber">2,4</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="appHome.empty" datatype="html">
+        <source>No published articles yet.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">packages/webapp/src/app/pages/app-home/app-home.html</context>
+          <context context-type="linenumber">10,12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="appList.title" datatype="html">
+        <source>Registered apps</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">packages/webapp/src/app/pages/app-list/app-list.html</context>
+          <context context-type="linenumber">2,3</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="appList.lede" datatype="html">
+        <source> Each app below has its own voice and visual style. The article content is the same shape everywhere — only the presentation changes. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">packages/webapp/src/app/pages/app-list/app-list.html</context>
+          <context context-type="linenumber">4,8</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="articlePage.back" datatype="html">
+        <source>← <x id="INTERPOLATION" equiv-text="{{ profile().name }}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">packages/webapp/src/app/pages/article-page/article-page.html</context>
+          <context context-type="linenumber">2,4</context>
+        </context-group>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

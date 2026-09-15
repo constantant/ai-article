@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en" target-language="es" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="app.brand" datatype="html">
+        <source>AI Article Platform</source>
+        <target>Plataforma de Artículos IA</target>
+      </trans-unit>
+      <trans-unit id="appHome.back" datatype="html">
+        <source>← All apps</source>
+        <target>← Todas las apps</target>
+      </trans-unit>
+      <trans-unit id="appHome.empty" datatype="html">
+        <source>No published articles yet.</source>
+        <target>Todavía no hay artículos publicados.</target>
+      </trans-unit>
+      <trans-unit id="appList.title" datatype="html">
+        <source>Registered apps</source>
+        <target>Apps registradas</target>
+      </trans-unit>
+      <trans-unit id="appList.lede" datatype="html">
+        <source> Each app below has its own voice and visual style. The article content is the same shape everywhere — only the presentation changes. </source>
+        <target> Cada app tiene su propio tono y estilo visual. El contenido de los artículos tiene la misma estructura en todas partes — solo cambia la presentación. </target>
+      </trans-unit>
+      <trans-unit id="articlePage.back" datatype="html">
+        <source>← <x id="INTERPOLATION" equiv-text="{{ profile().name }}"/></source>
+        <target>← <x id="INTERPOLATION" equiv-text="{{ profile().name }}"/></target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
