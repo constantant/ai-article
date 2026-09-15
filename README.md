@@ -22,6 +22,7 @@ from one system.
 | [`packages/mcp-server`](packages/mcp-server) | An MCP server (`@modelcontextprotocol/sdk`) exposing the REST API as tools (`list_apps`, `get_app_profile`, `create_article`, `validate_article`, `publish_article`, ...) and resources (live JSON Schemas, app profiles, example articles). |
 | [`packages/skill`](packages/skill) | `SKILL.md` — the authoring workflow a model follows: resolve the app, read its profile, draft within its allowed block types, validate, then publish. |
 | [`packages/webapp`](packages/webapp) | Angular 22, SSR, Material 3, real `@angular/localize` i18n. Renders any app's articles by mapping each `AppProfile`'s design tokens to CSS custom properties per request — no per-app code, just per-app data. |
+| [`packages/infra`](packages/infra) | CDK (TypeScript). Deploys `rest-api` and `webapp` to AWS Lambda (container image, Function URLs) backed by DynamoDB, plus the GitHub OIDC deploy role for CI. |
 
 ## How it fits together
 
@@ -63,10 +64,21 @@ npx nx serve rest-api
 ```
 
 The seed script prints an `x-api-key` for each demo app — save these, the MCP server
-needs them to write.
+needs them to write. (If you ever need another one: `POST /api/apps` with an
+`x-admin-key` header set to `ADMIN_API_KEY` from your `.env` returns a fresh key —
+each key is shown exactly once, at registration.)
 
-**2. Configure the MCP server** with those keys and point your MCP client (Claude
-Code, Claude Desktop, ...) at it:
+**2. Build the MCP server**, then connect it to a Claude client:
+
+```sh
+npx nx build mcp-server
+```
+
+<details>
+<summary><b>Claude Code</b> — project-scoped <code>.mcp.json</code></summary>
+
+Create `.mcp.json` at the repo root (safe to commit — it references env vars, not
+the keys themselves):
 
 ```json
 {
@@ -74,6 +86,41 @@ Code, Claude Desktop, ...) at it:
     "ai-article-platform": {
       "command": "node",
       "args": ["packages/mcp-server/dist/main.js"],
+      "env": {
+        "REST_API_BASE_URL": "${REST_API_BASE_URL}",
+        "APP_API_KEYS": "${APP_API_KEYS}"
+      }
+    }
+  }
+}
+```
+
+Then export both in your own shell profile (e.g. `~/.zshrc`/`~/.bashrc`), never in
+the committed file:
+
+```sh
+export REST_API_BASE_URL='http://localhost:3000/api'
+export APP_API_KEYS='{"tech-blog":"<key>","lifestyle":"<key>"}'
+```
+
+Restart Claude Code in this repo and run `/mcp` to confirm `ai-article-platform`
+connected.
+
+</details>
+
+<details>
+<summary><b>Claude Desktop</b></summary>
+
+Edit `claude_desktop_config.json` (`~/Library/Application Support/Claude/` on macOS,
+`%APPDATA%\Claude\` on Windows — this file lives outside the repo, so real key values
+here are fine):
+
+```json
+{
+  "mcpServers": {
+    "ai-article-platform": {
+      "command": "node",
+      "args": ["E:\\Konstantin\\Work\\ai-article\\packages\\mcp-server\\dist\\main.js"],
       "env": {
         "REST_API_BASE_URL": "http://localhost:3000/api",
         "APP_API_KEYS": "{\"tech-blog\":\"<key>\",\"lifestyle\":\"<key>\"}"
@@ -83,7 +130,33 @@ Code, Claude Desktop, ...) at it:
 }
 ```
 
-**3. Start the webapp** and browse the demo apps:
+Use an absolute path to `dist/main.js` — Desktop doesn't run from the repo's working
+directory. Fully restart Claude Desktop afterward.
+
+</details>
+
+To point either client at the **deployed** instance instead of local, set
+`REST_API_BASE_URL` to the deployed rest-api's Function URL + `/api` (see
+`packages/infra`'s stack outputs), and use API keys registered against that
+deployment (its `ADMIN_API_KEY` is in AWS Secrets Manager under
+`ai-article/admin-api-key`, not your local `.env`).
+
+**3. Install the Skill** so Claude actually follows the authoring workflow (the MCP
+tools alone don't tell it *how* to use them):
+
+```sh
+mkdir -p .claude/skills/article-authoring
+cp packages/skill/SKILL.md .claude/skills/article-authoring/SKILL.md
+```
+
+Use `.claude/skills/` for this repo only, or `~/.claude/skills/article-authoring/` to
+make it available from any project. Restart Claude Code to pick it up.
+
+**Verify the connection**: ask Claude something like *"using the article-authoring
+skill, list the registered apps and draft a short article for tech-blog"* — you
+should see it call `list_apps`, then `get_app_profile`, before writing anything.
+
+**4. Start the webapp** and browse the demo apps:
 
 ```sh
 npx nx build webapp   # localizes the en/es bundles
