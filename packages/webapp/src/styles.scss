@@ -36,4 +36,21 @@ body {
   margin: 0;
   height: 100%;
 }
+
+// app-root lays out the toolbar and the routed page as siblings, so the
+// routed page must fill the *remaining* height rather than declaring its own
+// 100vh — otherwise the toolbar's height adds on top and always overflows
+// the viewport. This targets the router-outlet's dynamically inserted
+// sibling, which can't be reached from app.component's own (encapsulated)
+// stylesheet, hence living here globally.
+app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+router-outlet + * {
+  flex: 1;
+}
+
 /* You can add global styles to this file, and also import other style files */
