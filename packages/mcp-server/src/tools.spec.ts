@@ -43,6 +43,7 @@ describe('MCP tools', () => {
   beforeEach(async () => {
     restClient = {
       listApps: vi.fn(),
+      createApp: vi.fn(),
       getAppProfile: vi.fn(),
       listArticles: vi.fn(),
       getArticle: vi.fn(),
@@ -56,9 +57,13 @@ describe('MCP tools', () => {
     const server = new McpServer({ name: 'test-server', version: '0.0.0' });
     registerTools(server, restClient);
 
-    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const [clientTransport, serverTransport] =
+      InMemoryTransport.createLinkedPair();
     client = new Client({ name: 'test-client', version: '0.0.0' });
-    await Promise.all([client.connect(clientTransport), server.connect(serverTransport)]);
+    await Promise.all([
+      client.connect(clientTransport),
+      server.connect(serverTransport),
+    ]);
   });
 
   it('list_apps calls RestClient.listApps and returns its data as tool content', async () => {
@@ -70,10 +75,46 @@ describe('MCP tools', () => {
     expect(textOf(result)).toEqual([fakeProfile()]);
   });
 
+  it('create_app forwards the full profile and returns the new api key', async () => {
+    vi.mocked(restClient.createApp).mockResolvedValue({
+      profile: fakeProfile(),
+      apiKey: 'new-key',
+    });
+
+    const result = await client.callTool({
+      name: 'create_app',
+      arguments: fakeProfile(),
+    });
+
+    expect(restClient.createApp).toHaveBeenCalledWith(
+      expect.objectContaining({ appId: 'tech-blog' }),
+    );
+    expect(textOf(result)).toEqual({
+      profile: fakeProfile(),
+      apiKey: 'new-key',
+    });
+  });
+
+  it('create_app surfaces a missing-admin-key error as an isError result, not a throw', async () => {
+    vi.mocked(restClient.createApp).mockRejectedValue(
+      new Error('no admin key configured for this server'),
+    );
+
+    const result = await client.callTool({
+      name: 'create_app',
+      arguments: fakeProfile(),
+    });
+
+    expect(result.isError).toBe(true);
+  });
+
   it('get_app_profile forwards appId', async () => {
     vi.mocked(restClient.getAppProfile).mockResolvedValue(fakeProfile());
 
-    const result = await client.callTool({ name: 'get_app_profile', arguments: { appId: 'tech-blog' } });
+    const result = await client.callTool({
+      name: 'get_app_profile',
+      arguments: { appId: 'tech-blog' },
+    });
 
     expect(restClient.getAppProfile).toHaveBeenCalledWith('tech-blog');
     expect(textOf(result)).toEqual(fakeProfile());
@@ -90,7 +131,9 @@ describe('MCP tools', () => {
 
     await client.callTool({ name: 'create_article', arguments: draft });
 
-    expect(restClient.createArticle).toHaveBeenCalledWith(expect.objectContaining(draft));
+    expect(restClient.createArticle).toHaveBeenCalledWith(
+      expect.objectContaining(draft),
+    );
   });
 
   it('update_article splits appId/id from the patch fields', async () => {
@@ -111,18 +154,29 @@ describe('MCP tools', () => {
   });
 
   it('publish_article forwards appId and id', async () => {
-    vi.mocked(restClient.publishArticle).mockResolvedValue({ ...fakeArticle(), status: 'published' });
+    vi.mocked(restClient.publishArticle).mockResolvedValue({
+      ...fakeArticle(),
+      status: 'published',
+    });
 
-    const result = await client.callTool({ name: 'publish_article', arguments: { appId: 'tech-blog', id: 'a1' } });
+    const result = await client.callTool({
+      name: 'publish_article',
+      arguments: { appId: 'tech-blog', id: 'a1' },
+    });
 
     expect(restClient.publishArticle).toHaveBeenCalledWith('tech-blog', 'a1');
     expect((textOf(result) as Article).status).toBe('published');
   });
 
   it('translates a RestApiError into an isError tool result instead of throwing', async () => {
-    vi.mocked(restClient.getAppProfile).mockRejectedValue(new RestApiError(404, { message: 'not found' }));
+    vi.mocked(restClient.getAppProfile).mockRejectedValue(
+      new RestApiError(404, { message: 'not found' }),
+    );
 
-    const result = await client.callTool({ name: 'get_app_profile', arguments: { appId: 'nope' } });
+    const result = await client.callTool({
+      name: 'get_app_profile',
+      arguments: { appId: 'nope' },
+    });
 
     expect(result.isError).toBe(true);
   });

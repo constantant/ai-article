@@ -1,6 +1,6 @@
 ---
 name: article-authoring
-description: Draft, validate, and publish structured web articles to a registered app (destination site) through the ai-article-platform MCP server — tools list_apps, get_app_profile, list_articles, get_article, validate_article, create_article, update_article, publish_article. Matches each app's own voice, allowed content structure, and visual style automatically, so the same skill works across many differently-styled apps. Use whenever asked to write, draft, edit, or publish an article/blog post/web page for a named app or site ("write a post for tech-blog", "draft a lifestyle article about X", "publish this article"). Not for generic writing unrelated to a registered app.
+description: Draft, validate, and publish structured web articles to a registered app (destination site) through the ai-article-platform MCP server — tools create_app, list_apps, get_app_profile, list_articles, get_article, validate_article, create_article, update_article, publish_article. Matches each app's own voice, allowed content structure, and visual style automatically, so the same skill works across many differently-styled apps, and can register brand-new apps on request. Use whenever asked to write, draft, edit, or publish an article/blog post/web page for a named app or site ("write a post for tech-blog", "draft a lifestyle article about X", "publish this article"), or to set up a new app/site ("create a new app called ..."). Not for generic writing unrelated to a registered app.
 ---
 
 # Article Authoring
@@ -13,10 +13,24 @@ separation is what lets the exact same skill produce correct output for a
 dark/technical blog and a warm/lifestyle magazine without you knowing anything about
 either one's stylesheet.
 
+## Creating a new app
+
+If the user wants to set up a new destination site rather than write for an existing
+one, call `create_app` with `appId` (lowercase, hyphenated, unique), `name`, `voice`
+(`tone`, `audience`, optional `doNots`), `allowedBlockTypes` (pick a deliberate subset
+— see the block table below — not all of them by default), and `designTokens` (at
+minimum `color-surface`, `color-on-surface`, `color-primary`; see an existing app's
+profile via `get_app_profile` for the full set a webapp expects). Ask the user for
+voice/style direction rather than inventing it. This requires the MCP server to hold
+an admin key (`ADMIN_API_KEY`) — if the call fails saying no admin key is configured,
+tell the user to add one to their MCP server's environment rather than retrying.
+Once created, the new app's articles can be authored immediately in the same
+session — no reconnection needed.
+
 ## Workflow
 
 1. **Resolve the target app.** If the user didn't name one, call `list_apps` and ask
-   which one they mean — do not guess.
+   which one they mean (or whether they want to create a new one) — do not guess.
 2. **Call `get_app_profile(appId)`.** Read `voice` (tone, audience, things to avoid),
    `allowedBlockTypes`, and `contentConventions` before writing a single word. These
    vary per app and are the actual style contract — follow them over your own
@@ -44,19 +58,19 @@ either one's stylesheet.
 The full set (an app's `allowedBlockTypes` is a subset of these — never use a type
 the profile doesn't list):
 
-| type | shape | notes |
-|---|---|---|
-| `heading` | `{ level: 1-4, text }` | plain text, no rich text |
-| `paragraph` | `{ content: RichText }` | RichText = array of `{ text, bold?, italic?, code?, href? }` runs |
-| `image` | `{ src, alt, caption? }` | `alt` is required — never omit it |
-| `code` | `{ lang?, code }` | for tech-focused apps; check `allowedBlockTypes` before using |
-| `quote` | `{ content: RichText, attribution? }` | |
-| `list` | `{ ordered, items: RichText[] }` | |
-| `callout` | `{ variant: info\|warning\|success\|danger, content: RichText }` | |
-| `table` | `{ headers: string[], rows: string[][] }` | |
-| `embed` | `{ provider: youtube\|twitter\|codepen\|generic, url }` | |
-| `divider` | `{}` | |
-| `raw` | `{ html }` | escape hatch — only if the app explicitly allows it; prefer a typed block |
+| type        | shape                                                            | notes                                                                     |
+| ----------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `heading`   | `{ level: 1-4, text }`                                           | plain text, no rich text                                                  |
+| `paragraph` | `{ content: RichText }`                                          | RichText = array of `{ text, bold?, italic?, code?, href? }` runs         |
+| `image`     | `{ src, alt, caption? }`                                         | `alt` is required — never omit it                                         |
+| `code`      | `{ lang?, code }`                                                | for tech-focused apps; check `allowedBlockTypes` before using             |
+| `quote`     | `{ content: RichText, attribution? }`                            |                                                                           |
+| `list`      | `{ ordered, items: RichText[] }`                                 |                                                                           |
+| `callout`   | `{ variant: info\|warning\|success\|danger, content: RichText }` |                                                                           |
+| `table`     | `{ headers: string[], rows: string[][] }`                        |                                                                           |
+| `embed`     | `{ provider: youtube\|twitter\|codepen\|generic, url }`          |                                                                           |
+| `divider`   | `{}`                                                             |                                                                           |
+| `raw`       | `{ html }`                                                       | escape hatch — only if the app explicitly allows it; prefer a typed block |
 
 The full JSON Schema is always available live at the `schema://article-draft`
 resource — treat that as authoritative over this table if they ever disagree.
