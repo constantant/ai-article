@@ -33,6 +33,12 @@ COPY --from=lambda-adapter /lambda-adapter /opt/extensions/lambda-adapter
 # doesn't currently handle this project's dependency tree cleanly (Prisma's
 # optional platform packages trip it up). Correctness over image size for now.
 COPY --from=builder /workspace/node_modules ./node_modules
+# npm nests some deps here instead of hoisting to the root (version
+# conflicts with other workspace packages — e.g. swagger-ui-dist, dotenv@17,
+# prisma@7 all resolve differently at the root). Without this, anything kept
+# as a real runtime require() (webpack.config.js externals) resolves to
+# nothing in prod — that's how swagger-ui-dist's static assets went missing.
+COPY --from=builder /workspace/packages/rest-api/node_modules ./packages/rest-api/node_modules
 # @org/schema is a workspace package resolved via a node_modules symlink —
 # the symlink target must exist at the same relative path for it to resolve.
 COPY --from=builder /workspace/packages/schema/dist ./packages/schema/dist
