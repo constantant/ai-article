@@ -29,5 +29,7 @@ export const articleBySlugResolver: ResolveFn<Article> = (route) => {
 
 export const appListResolver: ResolveFn<AppProfile[]> = () => {
   const api = inject(ArticleApiService);
+  const theme = inject(ThemeService);
+  theme.reset();
   return api.listApps();
 };
