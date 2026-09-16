@@ -105,10 +105,29 @@
 
 .block-embed {
   margin: 1.5em 0;
-  padding: 1em;
+
+  &:has(a) {
+    padding: 1em;
+    border-radius: var(--app-radius-md, 8px);
+    border: 1px dashed
+      color-mix(in srgb, var(--app-color-on-surface, #000) 25%, transparent);
+  }
+}
+
+.block-embed-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
   border-radius: var(--app-radius-md, 8px);
-  border: 1px dashed
-    color-mix(in srgb, var(--app-color-on-surface, #000) 25%, transparent);
+  overflow: hidden;
+
+  iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
 }
 
 .block-divider {
