@@ -91,7 +91,7 @@ export function registerTools(
       description:
         "Attach an already-registered app's API key to this identity, so you can author for an app " +
         'someone else registered (e.g. sharing access with a Claude mobile account, or a different ' +
-        "machine/session) instead of self-serve-registering a brand-new app. The user must supply the " +
+        'machine/session) instead of self-serve-registering a brand-new app. The user must supply the ' +
         "appId and the exact API key from that app's original register_app/create_app result — this " +
         "server cannot look up or invent someone else's key. The key is verified against the REST API " +
         'before being saved; an invalid key is rejected with an error and nothing is persisted.',
@@ -115,7 +115,7 @@ export function registerTools(
     'get_app_key',
     {
       description:
-        "Get the API key this identity already holds for an app (one it registered, or one attached " +
+        'Get the API key this identity already holds for an app (one it registered, or one attached ' +
         'via attach_app_key), so it can be shared with another identity — e.g. copying a key registered ' +
         'on mobile so it can be attached on desktop, or vice versa. Only ever returns a key this identity ' +
         "already has; it cannot look up or reveal another identity's key. Fails if no key is held for appId.",

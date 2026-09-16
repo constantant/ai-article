@@ -98,10 +98,14 @@ export class RestClient {
    */
   async verifyAppKey(appId: string, apiKey: string): Promise<boolean> {
     try {
-      await this.request('POST', `/apps/${encodeURIComponent(appId)}/articles/validate`, {
-        apiKey,
-        body: {},
-      });
+      await this.request(
+        'POST',
+        `/apps/${encodeURIComponent(appId)}/articles/validate`,
+        {
+          apiKey,
+          body: {},
+        },
+      );
       return true;
     } catch (error) {
       if (error instanceof RestApiError && error.status === 401) {
