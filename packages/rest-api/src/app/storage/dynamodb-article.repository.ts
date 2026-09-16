@@ -1,5 +1,6 @@
 import { TransactionCanceledException } from '@aws-sdk/client-dynamodb';
 import {
+  DeleteCommand,
   GetCommand,
   PutCommand,
   QueryCommand,
@@ -217,5 +218,26 @@ export class DynamoArticleRepository implements ArticleRepository {
     return filter?.status
       ? articles.filter((article) => article.status === filter.status)
       : articles;
+  }
+
+  /** Deletes every item under this app's partition — articles and slug pointers alike. */
+  async deleteAllForApp(appId: string): Promise<void> {
+    const res = await this.client.send(
+      new QueryCommand({
+        TableName: this.config.articlesTable,
+        KeyConditionExpression: 'appId = :appId',
+        ExpressionAttributeValues: { ':appId': appId },
+      }),
+    );
+    await Promise.all(
+      (res.Items ?? []).map((item) =>
+        this.client.send(
+          new DeleteCommand({
+            TableName: this.config.articlesTable,
+            Key: { appId, sk: (item as { sk: string }).sk },
+          }),
+        ),
+      ),
+    );
   }
 }

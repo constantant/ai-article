@@ -3,6 +3,7 @@ import {
   TransactionCanceledException,
 } from '@aws-sdk/client-dynamodb';
 import {
+  DeleteCommand,
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
@@ -158,6 +159,35 @@ describe('DynamoArticleRepository', () => {
 
       expect(published).toHaveLength(1);
       expect(published[0].id).toBe('a2');
+    });
+  });
+
+  describe('deleteAllForApp', () => {
+    it('queries the whole partition and deletes every item found, including slug pointers', async () => {
+      ddbMock.on(QueryCommand).resolves({
+        Items: [
+          { appId: 'tech-blog', sk: 'ARTICLE#a1' },
+          { appId: 'tech-blog', sk: 'SLUG#hello' },
+        ],
+      });
+      ddbMock.on(DeleteCommand).resolves({});
+
+      await repo.deleteAllForApp('tech-blog');
+
+      const query = ddbMock.commandCalls(QueryCommand)[0];
+      expect(query.args[0].input).toMatchObject({
+        TableName: 'test-articles',
+        KeyConditionExpression: 'appId = :appId',
+        ExpressionAttributeValues: { ':appId': 'tech-blog' },
+      });
+      const deletes = ddbMock.commandCalls(DeleteCommand);
+      expect(deletes).toHaveLength(2);
+      expect(deletes.map((call) => call.args[0].input.Key)).toEqual(
+        expect.arrayContaining([
+          { appId: 'tech-blog', sk: 'ARTICLE#a1' },
+          { appId: 'tech-blog', sk: 'SLUG#hello' },
+        ]),
+      );
     });
   });
 });

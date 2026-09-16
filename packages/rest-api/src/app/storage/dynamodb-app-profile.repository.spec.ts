@@ -3,6 +3,7 @@ import {
   DynamoDBClient,
 } from '@aws-sdk/client-dynamodb';
 import {
+  DeleteCommand,
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
@@ -109,5 +110,17 @@ describe('DynamoAppProfileRepository', () => {
 
     expect(result).toHaveLength(1);
     expect(result[0].appId).toBe('tech-blog');
+  });
+
+  it('deleteById deletes the item keyed on appId', async () => {
+    ddbMock.on(DeleteCommand).resolves({});
+
+    await repo.deleteById('tech-blog');
+
+    const call = ddbMock.commandCalls(DeleteCommand)[0];
+    expect(call.args[0].input).toMatchObject({
+      TableName: 'test-apps',
+      Key: { appId: 'tech-blog' },
+    });
   });
 });

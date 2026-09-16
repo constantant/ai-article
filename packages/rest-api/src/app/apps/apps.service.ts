@@ -7,14 +7,19 @@ import {
 } from '@nestjs/common';
 import type { AppProfile } from '@org/schema';
 import { generateApiKey, hashApiKey } from '../common/api-key.js';
+import type { ArticleRepository } from '../storage/article-repository.port.js';
 import { AppIdConflictError } from '../storage/app-profile-repository.port.js';
 import type { AppProfileRepository } from '../storage/app-profile-repository.port.js';
-import { APP_PROFILE_REPOSITORY } from '../storage/tokens.js';
+import {
+  APP_PROFILE_REPOSITORY,
+  ARTICLE_REPOSITORY,
+} from '../storage/tokens.js';
 
 @Injectable()
 export class AppsService {
   constructor(
     @Inject(APP_PROFILE_REPOSITORY) private readonly repo: AppProfileRepository,
+    @Inject(ARTICLE_REPOSITORY) private readonly articles: ArticleRepository,
   ) {}
 
   async create(
@@ -61,5 +66,11 @@ export class AppsService {
 
   async list(): Promise<AppProfile[]> {
     return this.repo.list();
+  }
+
+  async remove(appId: string): Promise<void> {
+    await this.get(appId); // 404s if it doesn't exist
+    await this.articles.deleteAllForApp(appId);
+    await this.repo.deleteById(appId);
   }
 }

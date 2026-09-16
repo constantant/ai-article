@@ -35,3 +35,12 @@ export function persistKey(
   mkdirSync(path.dirname(filePath), { recursive: true });
   writeFileSync(filePath, JSON.stringify(keys, null, 2) + '\n');
 }
+
+export function removeKey(filePath: string, appId: string): void {
+  const keys = readPersistedKeys(filePath);
+  if (!(appId in keys)) {
+    return;
+  }
+  delete keys[appId];
+  writeFileSync(filePath, JSON.stringify(keys, null, 2) + '\n');
+}

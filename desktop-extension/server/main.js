@@ -42441,6 +42441,14 @@ function persistKey(filePath, appId, apiKey) {
   (0, import_node_fs.mkdirSync)(import_node_path.default.dirname(filePath), { recursive: true });
   (0, import_node_fs.writeFileSync)(filePath, JSON.stringify(keys, null, 2) + "\n");
 }
+function removeKey(filePath, appId) {
+  const keys = readPersistedKeys(filePath);
+  if (!(appId in keys)) {
+    return;
+  }
+  delete keys[appId];
+  (0, import_node_fs.writeFileSync)(filePath, JSON.stringify(keys, null, 2) + "\n");
+}
 
 // packages/mcp-server/src/config.ts
 function parseAppApiKeys(raw) {
@@ -42782,6 +42790,14 @@ var RestClient = class {
     this.appApiKeys.set(profile.appId, result.apiKey);
     return result;
   }
+  /** Deletes an app and all its articles, using whichever key we hold for it. */
+  async deleteApp(appId) {
+    await this.request("DELETE", `/apps/${encodeURIComponent(appId)}`, {
+      apiKey: this.tryApiKeyFor(appId),
+      adminKey: this.config.adminApiKey
+    });
+    this.appApiKeys.delete(appId);
+  }
   getAppProfile(appId) {
     return this.request("GET", `/apps/${encodeURIComponent(appId)}`);
   }
@@ -42904,6 +42920,18 @@ function registerTools(server, client, config2) {
       inputSchema: appProfileSchema.shape
     },
     (profile) => runTool(() => client.createApp(profile))
+  );
+  server.registerTool(
+    "delete_app",
+    {
+      description: "Permanently delete an app and all its articles \u2014 there's no undo. Requires either that app's own API key (which this server already holds if it registered or was given the app) or an admin key. Confirm with the user before calling this \u2014 it destroys published content.",
+      inputSchema: appIdSchema.shape
+    },
+    ({ appId }) => runTool(async () => {
+      await client.deleteApp(appId);
+      removeKey(config2.keysFilePath, appId);
+      return { deleted: appId };
+    })
   );
   server.registerTool(
     "get_app_profile",

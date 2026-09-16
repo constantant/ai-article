@@ -71,4 +71,8 @@ export class PrismaAppProfileRepository implements AppProfileRepository {
     });
     return rows.map(toProfile);
   }
+
+  async deleteById(appId: string): Promise<void> {
+    await this.prisma.app.delete({ where: { id: appId } });
+  }
 }

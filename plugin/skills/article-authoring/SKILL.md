@@ -1,6 +1,6 @@
 ---
 name: article-authoring
-description: Draft, validate, and publish structured web articles to a registered app (destination site) through the ai-article-platform MCP server — tools register_app, create_app, list_apps, get_app_profile, list_articles, get_article, validate_article, create_article, update_article, publish_article. Matches each app's own voice, allowed content structure, and visual style automatically, so the same skill works across many differently-styled apps, and can register brand-new apps on request — no admin key needed, registration is self-serve. Use whenever asked to write, draft, edit, or publish an article/blog post/web page for a named app or site ("write a post for tech-blog", "draft a lifestyle article about X", "publish this article"), or to set up a new app/site ("create a new app called ..."). Not for generic writing unrelated to a registered app.
+description: Draft, validate, and publish structured web articles to a registered app (destination site) through the ai-article-platform MCP server — tools register_app, create_app, delete_app, list_apps, get_app_profile, list_articles, get_article, validate_article, create_article, update_article, publish_article. Matches each app's own voice, allowed content structure, and visual style automatically, so the same skill works across many differently-styled apps, and can register brand-new apps on request — no admin key needed, registration is self-serve. Use whenever asked to write, draft, edit, or publish an article/blog post/web page for a named app or site ("write a post for tech-blog", "draft a lifestyle article about X", "publish this article"), to set up a new app/site ("create a new app called ..."), or to remove one ("delete the app called ..."). Not for generic writing unrelated to a registered app.
 ---
 
 # Article Authoring
@@ -30,6 +30,13 @@ and the key is remembered locally so this keeps working after a restart.
 full, tell the user to ask the maintainer to register the app instead. `create_app`
 is the admin-gated equivalent (requires `ADMIN_API_KEY`) — only reach for it if the
 user is an operator who explicitly wants that path, or `register_app` is unavailable.
+
+## Deleting an app
+
+`delete_app(appId)` permanently removes an app and every one of its articles —
+there is no undo. It works with either that app's own key (which this server
+already holds after `register_app`/`create_app`) or an admin key. Always confirm
+with the user before calling it, especially if the app has published articles.
 
 ## Workflow
 

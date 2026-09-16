@@ -1,7 +1,17 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { appProfileSchema, type AppProfile } from '@org/schema';
 import { AdminGuard } from '../auth/admin.guard.js';
+import { ApiKeyOrAdminGuard } from '../auth/api-key-or-admin.guard.js';
 import { ZodValidationPipe } from '../common/zod-validation.pipe.js';
 import { AppsService } from './apps.service.js';
 
@@ -45,5 +55,17 @@ export class AppsController {
     @Body(new ZodValidationPipe(appProfileSchema)) profile: AppProfile,
   ) {
     return this.apps.createSelfServe(profile);
+  }
+
+  @Delete(':appId')
+  @UseGuards(ApiKeyOrAdminGuard)
+  @HttpCode(204)
+  @ApiOperation({
+    summary:
+      "Delete an app and all its articles. Requires the app's own x-api-key " +
+      'or x-admin-key.',
+  })
+  remove(@Param('appId') appId: string) {
+    return this.apps.remove(appId);
   }
 }

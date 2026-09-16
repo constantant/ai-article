@@ -13,7 +13,7 @@ const profile = (appId: string) => ({
   designTokens: {},
 });
 
-describe('Self-serve app registration (e2e)', () => {
+describe('Self-serve app registration and deletion (e2e)', () => {
   let app: INestApplication;
   let dbDir: string;
   let httpServer: import('http').Server;
@@ -70,5 +70,65 @@ describe('Self-serve app registration (e2e)', () => {
     } finally {
       delete process.env['SELF_SERVE_APP_CAP'];
     }
+  });
+
+  describe('DELETE /apps/:appId', () => {
+    it("rejects deletion without the app's key or an admin key", async () => {
+      await request(httpServer)
+        .post('/api/apps/self-serve')
+        .send(profile('delete-me-unauthorized'))
+        .expect(201);
+
+      await request(httpServer)
+        .delete('/api/apps/delete-me-unauthorized')
+        .expect(401);
+    });
+
+    it("deletes an app and its articles using the app's own key", async () => {
+      const registerRes = await request(httpServer)
+        .post('/api/apps/self-serve')
+        .send(profile('delete-me-self'))
+        .expect(201);
+      const apiKey = registerRes.body.apiKey as string;
+
+      await request(httpServer)
+        .post('/api/apps/delete-me-self/articles')
+        .set('x-api-key', apiKey)
+        .send({
+          appId: 'delete-me-self',
+          slug: 'hello',
+          title: 'Hello',
+          blocks: [{ type: 'paragraph', content: [{ text: 'Hello' }] }],
+        })
+        .expect(201);
+
+      await request(httpServer)
+        .delete('/api/apps/delete-me-self')
+        .set('x-api-key', apiKey)
+        .expect(204);
+
+      await request(httpServer).get('/api/apps/delete-me-self').expect(404);
+    });
+
+    it('deletes an app using the admin key even without its own key', async () => {
+      await request(httpServer)
+        .post('/api/apps/self-serve')
+        .send(profile('delete-me-admin'))
+        .expect(201);
+
+      await request(httpServer)
+        .delete('/api/apps/delete-me-admin')
+        .set('x-admin-key', 'unused-in-this-suite')
+        .expect(204);
+
+      await request(httpServer).get('/api/apps/delete-me-admin').expect(404);
+    });
+
+    it('404s deleting an app that does not exist', async () => {
+      await request(httpServer)
+        .delete('/api/apps/no-such-app')
+        .set('x-admin-key', 'unused-in-this-suite')
+        .expect(404);
+    });
   });
 });

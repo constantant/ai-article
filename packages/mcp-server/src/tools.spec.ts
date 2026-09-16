@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import type { McpServerConfig } from './config.js';
+import { persistKey } from './key-store.js';
 import { RestApiError } from './rest-client.js';
 import type { RestClient } from './rest-client.js';
 import { registerTools } from './tools.js';
@@ -57,6 +58,7 @@ describe('MCP tools', () => {
       listApps: vi.fn(),
       registerApp: vi.fn(),
       createApp: vi.fn(),
+      deleteApp: vi.fn(),
       getAppProfile: vi.fn(),
       listArticles: vi.fn(),
       getArticle: vi.fn(),
@@ -125,6 +127,36 @@ describe('MCP tools', () => {
     const result = await client.callTool({
       name: 'register_app',
       arguments: fakeProfile(),
+    });
+
+    expect(result.isError).toBe(true);
+  });
+
+  it('delete_app forwards appId and removes any persisted key for it', async () => {
+    persistKey(keysFilePath, 'tech-blog', 'stale-key');
+    persistKey(keysFilePath, 'other-app', 'unrelated-key');
+    vi.mocked(restClient.deleteApp).mockResolvedValue(undefined);
+
+    const result = await client.callTool({
+      name: 'delete_app',
+      arguments: { appId: 'tech-blog' },
+    });
+
+    expect(restClient.deleteApp).toHaveBeenCalledWith('tech-blog');
+    expect(textOf(result)).toEqual({ deleted: 'tech-blog' });
+    expect(JSON.parse(readFileSync(keysFilePath, 'utf8'))).toEqual({
+      'other-app': 'unrelated-key',
+    });
+  });
+
+  it('delete_app surfaces an unauthorized error as an isError result, not a throw', async () => {
+    vi.mocked(restClient.deleteApp).mockRejectedValue(
+      new RestApiError(401, { message: 'unauthorized' }),
+    );
+
+    const result = await client.callTool({
+      name: 'delete_app',
+      arguments: { appId: 'tech-blog' },
     });
 
     expect(result.isError).toBe(true);

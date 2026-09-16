@@ -119,6 +119,15 @@ export class RestClient {
     return result;
   }
 
+  /** Deletes an app and all its articles, using whichever key we hold for it. */
+  async deleteApp(appId: string): Promise<void> {
+    await this.request('DELETE', `/apps/${encodeURIComponent(appId)}`, {
+      apiKey: this.tryApiKeyFor(appId),
+      adminKey: this.config.adminApiKey,
+    });
+    this.appApiKeys.delete(appId);
+  }
+
   getAppProfile(appId: string): Promise<AppProfile> {
     return this.request('GET', `/apps/${encodeURIComponent(appId)}`);
   }

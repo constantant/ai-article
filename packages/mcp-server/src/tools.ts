@@ -2,7 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { appProfileSchema, articleDraftInputSchema } from '@org/schema';
 import { z } from 'zod';
 import type { McpServerConfig } from './config.js';
-import { persistKey } from './key-store.js';
+import { persistKey, removeKey } from './key-store.js';
 import type { RestClient } from './rest-client.js';
 import { runTool } from './tool-result.js';
 
@@ -63,6 +63,23 @@ export function registerTools(
       inputSchema: appProfileSchema.shape,
     },
     (profile) => runTool(() => client.createApp(profile)),
+  );
+
+  server.registerTool(
+    'delete_app',
+    {
+      description:
+        "Permanently delete an app and all its articles — there's no undo. Requires either that app's " +
+        'own API key (which this server already holds if it registered or was given the app) or an ' +
+        'admin key. Confirm with the user before calling this — it destroys published content.',
+      inputSchema: appIdSchema.shape,
+    },
+    ({ appId }) =>
+      runTool(async () => {
+        await client.deleteApp(appId);
+        removeKey(config.keysFilePath, appId);
+        return { deleted: appId };
+      }),
   );
 
   server.registerTool(

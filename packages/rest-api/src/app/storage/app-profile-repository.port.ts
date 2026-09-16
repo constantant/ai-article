@@ -16,4 +16,5 @@ export interface AppProfileRepository {
   create(profile: AppProfile, apiKeyHash: string): Promise<void>;
   findById(appId: string): Promise<StoredAppProfile | null>;
   list(): Promise<AppProfile[]>;
+  deleteById(appId: string): Promise<void>;
 }

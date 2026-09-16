@@ -1,5 +1,10 @@
 import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
-import { GetCommand, PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import {
+  DeleteCommand,
+  GetCommand,
+  PutCommand,
+  ScanCommand,
+} from '@aws-sdk/lib-dynamodb';
 import type { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { Inject, Injectable } from '@nestjs/common';
 import type { AppProfile, BlockType } from '@org/schema';
@@ -93,5 +98,11 @@ export class DynamoAppProfileRepository implements AppProfileRepository {
       new ScanCommand({ TableName: this.config.appsTable }),
     );
     return (res.Items ?? []).map((item) => toProfile(item as AppItem));
+  }
+
+  async deleteById(appId: string): Promise<void> {
+    await this.client.send(
+      new DeleteCommand({ TableName: this.config.appsTable, Key: { appId } }),
+    );
   }
 }
