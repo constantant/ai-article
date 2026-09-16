@@ -19,7 +19,11 @@ const documentClient = DynamoDBDocumentClient.from(
 );
 const ddbMock = mockClient(documentClient);
 
-const config = { appsTable: 'test-apps', articlesTable: 'test-articles' };
+const config = {
+  appsTable: 'test-apps',
+  articlesTable: 'test-articles',
+  usersTable: 'test-users',
+};
 
 const profile: AppProfile = {
   appId: 'tech-blog',

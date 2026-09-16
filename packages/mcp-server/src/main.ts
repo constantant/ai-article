@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { loadConfig } from './config.js';
+import { LocalFileKeyStore } from './key-store.js';
 import { registerResources } from './resources.js';
 import { RestClient } from './rest-client.js';
 import { registerTools } from './tools.js';
@@ -13,7 +14,7 @@ async function main() {
     name: 'ai-article-platform',
     version: '0.1.0',
   });
-  registerTools(server, client, config);
+  registerTools(server, client, new LocalFileKeyStore(config.keysFilePath));
   registerResources(server, client);
 
   const transport = new StdioServerTransport();

@@ -75,10 +75,61 @@ export class AiArticleStack extends Stack {
       removalPolicy: RemovalPolicy.DESTROY,
     });
 
+    // User accounts + their linked per-app API keys (see
+    // DynamoUserRepository) — single table, PK userId, SK distinguishes a
+    // profile item, an APPKEY# item, or (for global email-uniqueness) an
+    // EMAIL#<email> pointer item, same single-table-multi-item-shape pattern
+    // as ArticlesTable.
+    const usersTable = new Table(this, 'UsersTable', {
+      tableName: 'ai-article-users',
+      partitionKey: { name: 'userId', type: AttributeType.STRING },
+      sortKey: { name: 'sk', type: AttributeType.STRING },
+      billingMode: BillingMode.PAY_PER_REQUEST,
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
+    // Registered OAuth clients (Dynamic Client Registration — mobile Claude
+    // self-registers on first connect) for the mcp-server's own OAuth
+    // authorization server. Unlike auth codes/tokens (stateless JWTs, see
+    // AiArticleOAuthProvider), these need indefinite persistence.
+    const oauthClientsTable = new Table(this, 'OAuthClientsTable', {
+      tableName: 'ai-article-mcp-oauth-clients',
+      partitionKey: { name: 'clientId', type: AttributeType.STRING },
+      billingMode: BillingMode.PAY_PER_REQUEST,
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
+    // Single-use replay protection for authorization-code JWTs — the one
+    // piece of real state the stateless-JWT OAuth design still needs (see
+    // UsedCodeGuard). TTL'd on `expiresAt` so entries expire on their own
+    // shortly after the code itself would have.
+    const oauthUsedCodesTable = new Table(this, 'OAuthUsedCodesTable', {
+      tableName: 'ai-article-mcp-oauth-used-codes',
+      partitionKey: { name: 'jti', type: AttributeType.STRING },
+      billingMode: BillingMode.PAY_PER_REQUEST,
+      removalPolicy: RemovalPolicy.DESTROY,
+      timeToLiveAttribute: 'expiresAt',
+    });
+
     // --- Secrets ---
     const adminApiKey = new Secret(this, 'AdminApiKey', {
       secretName: 'ai-article/admin-api-key',
       generateSecretString: { excludePunctuation: true, passwordLength: 32 },
+    });
+
+    // Shared between rest-api and mcp-server: gates the service-to-service
+    // per-user endpoints (verify-credentials, per-user app-keys) that only
+    // mcp-server's own OAuth login flow should ever call.
+    const mcpServiceKey = new Secret(this, 'McpServiceKey', {
+      secretName: 'ai-article/mcp-service-key',
+      generateSecretString: { excludePunctuation: true, passwordLength: 32 },
+    });
+
+    // Symmetric signing key for mcp-server's stateless auth-code/access/
+    // refresh JWTs (see JwtIssuer).
+    const mcpJwtSigningKey = new Secret(this, 'McpJwtSigningKey', {
+      secretName: 'ai-article/mcp-jwt-signing-key',
+      generateSecretString: { excludePunctuation: true, passwordLength: 48 },
     });
 
     // --- rest-api ---
@@ -94,14 +145,17 @@ export class AiArticleStack extends Stack {
         STORAGE_DRIVER: 'dynamodb',
         DYNAMODB_APPS_TABLE: appsTable.tableName,
         DYNAMODB_ARTICLES_TABLE: articlesTable.tableName,
+        DYNAMODB_USERS_TABLE: usersTable.tableName,
         // .secretValue (not .unsafeUnwrap()) resolves to a CloudFormation
         // dynamic reference — the plaintext value never appears in the
         // template or this stack's synth output.
         ADMIN_API_KEY: adminApiKey.secretValue.toString(),
+        MCP_SERVICE_KEY: mcpServiceKey.secretValue.toString(),
       },
     });
     appsTable.grantReadWriteData(restApiFunction);
     articlesTable.grantReadWriteData(restApiFunction);
+    usersTable.grantReadWriteData(restApiFunction);
 
     // App-layer auth (ApiKeyGuard/AdminGuard) already gates writes — same
     // trust boundary as running it locally.
@@ -137,8 +191,45 @@ export class AiArticleStack extends Stack {
       `*.lambda-url.${this.region}.on.aws`,
     );
 
+    // --- mcp-server (remote MCP connector, HTTP + OAuth) ---
+    const mcpServerFunction = new DockerImageFunction(this, 'McpServerFunction', {
+      functionName: 'ai-article-mcp-server',
+      code: DockerImageCode.fromImageAsset('../..', {
+        file: 'packages/mcp-server/Dockerfile',
+        exclude: IMAGE_ASSET_EXCLUDES,
+      }),
+      memorySize: 512,
+      timeout: Duration.seconds(30),
+      environment: {
+        REST_API_BASE_URL: Fn.join('', [restApiUrl.url, 'api']),
+        MCP_SERVICE_KEY: mcpServiceKey.secretValue.toString(),
+        MCP_JWT_SIGNING_KEY: mcpJwtSigningKey.secretValue.toString(),
+        STORAGE_DRIVER: 'dynamodb',
+        DYNAMODB_OAUTH_CLIENTS_TABLE: oauthClientsTable.tableName,
+        DYNAMODB_OAUTH_USED_CODES_TABLE: oauthUsedCodesTable.tableName,
+        // Deliberately no issuer-URL env var — this server's own Function
+        // URL isn't knowable here without a circular dependency (this
+        // function's environment would depend on its own FunctionUrl
+        // resource, which depends back on the function — the same shape of
+        // cycle webappFunction's ALLOWED_HOSTS wildcard works around below,
+        // except a wildcard can't stand in for an OAuth issuer, which must
+        // be one exact origin). mcp-server derives it per-request from the
+        // Host header instead (see http-main.ts).
+      },
+    });
+    oauthClientsTable.grantReadWriteData(mcpServerFunction);
+    oauthUsedCodesTable.grantReadWriteData(mcpServerFunction);
+
+    // OAuth (Dynamic Client Registration + bearer-token verification) does
+    // the real gating here — same trust boundary as the other two functions'
+    // app-layer auth.
+    const mcpServerUrl = mcpServerFunction.addFunctionUrl({
+      authType: FunctionUrlAuthType.NONE,
+    });
+
     new CfnOutput(this, 'RestApiUrl', { value: restApiUrl.url });
     new CfnOutput(this, 'WebappUrl', { value: webappUrl.url });
+    new CfnOutput(this, 'McpServerUrl', { value: mcpServerUrl.url });
 
     // --- GitHub Actions deploy role (OIDC, no long-lived keys) ---
     // Reuses the OIDC provider already registered in this account (from the

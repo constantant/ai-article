@@ -1,13 +1,9 @@
 import os from 'node:os';
 import path from 'node:path';
 import { readPersistedKeys } from './key-store.js';
+import type { RestClientConfig } from './rest-client.js';
 
-export interface McpServerConfig {
-  restApiBaseUrl: string;
-  /** appId -> API key, so the Skill/model never handles raw credentials. */
-  appApiKeys: Record<string, string>;
-  /** Required only for the create_app tool (POST /apps needs x-admin-key). */
-  adminApiKey?: string;
+export interface McpServerConfig extends RestClientConfig {
   /** Where register_app persists newly minted keys across restarts. */
   keysFilePath: string;
 }

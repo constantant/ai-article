@@ -28,6 +28,24 @@ model App {
   updatedAt          DateTime  @updatedAt
 }
 
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  appKeys      UserAppKey[]
+  createdAt    DateTime     @default(now())
+}
+
+model UserAppKey {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  appId  String
+  apiKey String
+
+  @@unique([userId, appId])
+}
+
 model Article {
   id            String   @id @default(cuid())
   appId         String

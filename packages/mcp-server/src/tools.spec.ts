@@ -6,8 +6,7 @@ import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
-import type { McpServerConfig } from './config.js';
-import { persistKey } from './key-store.js';
+import { LocalFileKeyStore, persistKey } from './key-store.js';
 import { RestApiError } from './rest-client.js';
 import type { RestClient } from './rest-client.js';
 import { registerTools } from './tools.js';
@@ -48,11 +47,7 @@ describe('MCP tools', () => {
 
   beforeEach(async () => {
     keysFilePath = join(tmpdir(), `mcp-tools-spec-keys-${Date.now()}.json`);
-    const config: McpServerConfig = {
-      restApiBaseUrl: 'http://localhost:3000/api',
-      appApiKeys: {},
-      keysFilePath,
-    };
+    const keyStore = new LocalFileKeyStore(keysFilePath);
 
     restClient = {
       listApps: vi.fn(),
@@ -70,7 +65,7 @@ describe('MCP tools', () => {
     } as unknown as RestClient;
 
     const server = new McpServer({ name: 'test-server', version: '0.0.0' });
-    registerTools(server, restClient, config);
+    registerTools(server, restClient, keyStore);
 
     const [clientTransport, serverTransport] =
       InMemoryTransport.createLinkedPair();

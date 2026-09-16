@@ -4,7 +4,21 @@ import type {
   ArticleDraftInput,
   ValidationResult,
 } from '@org/schema';
-import type { McpServerConfig } from './config.js';
+
+/**
+ * The subset of McpServerConfig that RestClient actually needs — split out
+ * so an HTTP request handler can build one per request (with per-user
+ * appApiKeys resolved from an authenticated caller) without needing a fake
+ * keysFilePath, which only ever makes sense for the stdio process's local
+ * key-store.
+ */
+export interface RestClientConfig {
+  restApiBaseUrl: string;
+  /** appId -> API key, so the Skill/model never handles raw credentials. */
+  appApiKeys: Record<string, string>;
+  /** Required only for the create_app tool (POST /apps needs x-admin-key). */
+  adminApiKey?: string;
+}
 
 export class RestApiError extends Error {
   constructor(
@@ -32,7 +46,7 @@ export class RestClient {
    *  newly created app is immediately usable without restarting the server. */
   private readonly appApiKeys: Map<string, string>;
 
-  constructor(private readonly config: McpServerConfig) {
+  constructor(private readonly config: RestClientConfig) {
     this.appApiKeys = new Map(Object.entries(config.appApiKeys));
   }
 

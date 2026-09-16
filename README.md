@@ -19,19 +19,20 @@ from one system.
 | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`packages/schema`](packages/schema)         | Zod models (`Article`, `Block` union, `AppProfile`) and `validateArticle` — the single source of truth every other package imports directly, plus a native JSON Schema export for MCP.                                                       |
 | [`packages/rest-api`](packages/rest-api)     | NestJS + Prisma/SQLite. Multi-tenant article storage behind a repository interface (so a future app can use Postgres/Mongo without touching the service layer), per-app API-key auth, Swagger docs.                                          |
-| [`packages/mcp-server`](packages/mcp-server) | An MCP server (`@modelcontextprotocol/sdk`) exposing the REST API as tools (`list_apps`, `get_app_profile`, `create_article`, `validate_article`, `publish_article`, ...) and resources (live JSON Schemas, app profiles, example articles). |
+| [`packages/mcp-server`](packages/mcp-server) | An MCP server (`@modelcontextprotocol/sdk`) exposing the REST API as tools (`list_apps`, `get_app_profile`, `create_article`, `validate_article`, `publish_article`, ...) and resources (live JSON Schemas, app profiles, example articles). Two entrypoints: `main.ts` speaks stdio for Claude Code/Desktop; `http-main.ts` speaks Streamable HTTP behind its own OAuth 2.1 authorization server, for use as a **Claude mobile connector**, where each signed-in user gets their own isolated set of app API keys. |
 | [`packages/skill`](packages/skill)           | `SKILL.md` — the authoring workflow a model follows: resolve the app, read its profile, draft within its allowed block types, validate, then publish.                                                                                        |
 | [`packages/webapp`](packages/webapp)         | Angular 22, SSR, Material 3, real `@angular/localize` i18n. Renders any app's articles by mapping each `AppProfile`'s design tokens to CSS custom properties per request — no per-app code, just per-app data.                               |
-| [`packages/infra`](packages/infra)           | CDK (TypeScript). Deploys `rest-api` and `webapp` to AWS Lambda (container image, Function URLs) backed by DynamoDB, plus the GitHub OIDC deploy role for CI.                                                                                |
+| [`packages/infra`](packages/infra)           | CDK (TypeScript). Deploys `rest-api`, `webapp`, and `mcp-server` (HTTP/OAuth mode) to AWS Lambda (container image, Function URLs) backed by DynamoDB, plus the GitHub OIDC deploy role for CI.                                               |
 
 ## How it fits together
 
 ```
-Claude (Skill) --MCP--> mcp-server --HTTP--> rest-api --Prisma--> SQLite
-                                                  |
-                                            GET (public)
-                                                  v
-                                              webapp (SSR)
+Claude Code/Desktop (Skill) --stdio-MCP-->
+                                            mcp-server --HTTP--> rest-api --Prisma--> SQLite
+Claude mobile (connector) --HTTP-MCP+OAuth-->                        |
+                                                                 GET (public)
+                                                                       v
+                                                                   webapp (SSR)
 ```
 
 1. The Skill asks `get_app_profile` for the target app's voice, allowed block types,
@@ -42,6 +43,11 @@ Claude (Skill) --MCP--> mcp-server --HTTP--> rest-api --Prisma--> SQLite
    and renders them through one generic `BlockRendererComponent`, themed entirely by
    that app's design tokens (set as CSS custom properties server-side, so there's no
    flash of the wrong app's colors).
+4. mcp-server's two entrypoints share every tool/resource but differ in identity: the
+   stdio process *is* your identity (its local key file is yours alone), while the HTTP
+   entrypoint authenticates each caller via OAuth and resolves that signed-in user's own
+   app keys from rest-api on every request — so one deployed connector safely serves many
+   people.
 
 ## Quick install (no cloning, no admin key)
 
@@ -84,9 +90,34 @@ own descriptions carry enough guidance to get it right.
 
 </details>
 
-Maintainers: both artifacts are built from `packages/mcp-server` and
-`packages/skill` via `node scripts/build-distribution.mjs` — run it and commit the
-result (`plugin/`, `desktop-extension/`) before tagging a release.
+<details>
+<summary><b>Claude mobile (or any remote MCP connector client)</b></summary>
+
+Mobile can't spawn a local process, so it needs the deployed **remote** connector
+instead of `packages/mcp-server`'s stdio build. In the Claude app: Settings →
+Connectors → Add custom connector, and paste the deployed connector URL (ask a
+maintainer, or see `McpServerUrl` in `packages/infra`'s stack outputs).
+
+The first connection opens an OAuth login page in-app — self-serve, same as
+`register_app`: enter an email/password to create an account on the spot, no
+separate signup step, no email verification or password reset (this platform's
+usual trust tradeoff for zero-setup access — see `packages/rest-api/src/app/users`).
+Each signed-in identity gets its own isolated set of app keys, resolved fresh on
+every request, so this one deployed connector safely serves multiple people at
+once.
+
+Note this is a *separate* identity from the local stdio server's key file —
+`register_app` here mints a brand-new app tied to your mobile account; there's no
+tool yet to attach an already-existing app's key to a different identity.
+
+</details>
+
+Maintainers: the Claude Code plugin and Desktop Extension artifacts are built from
+`packages/mcp-server` and `packages/skill` via `node scripts/build-distribution.mjs`
+— run it and commit the result (`plugin/`, `desktop-extension/`) before tagging a
+release. The mobile connector is a separate deployable (`packages/mcp-server`'s
+`http-main.ts`, shipped via `packages/mcp-server/Dockerfile`) — see
+`packages/infra`'s `McpServerFunction` — and isn't part of that script.
 
 ## Getting started (for contributors)
 
@@ -188,6 +219,28 @@ To point either client at the **deployed** instance instead of local, set
 deployment (its `ADMIN_API_KEY` is in AWS Secrets Manager under
 `ai-article/admin-api-key`, not your local `.env`).
 
+<details>
+<summary><b>Testing the mobile connector (HTTP + OAuth) locally</b></summary>
+
+This is the remote entrypoint `packages/infra` deploys as `McpServerFunction` — you
+generally don't need to run it yourself, but to exercise it locally (e.g. against
+the [MCP Inspector](https://github.com/modelcontextprotocol/inspector)):
+
+```sh
+# rest-api also needs MCP_SERVICE_KEY set (add it to packages/rest-api/.env —
+# see .env.example) and must be running first.
+export MCP_SERVICE_KEY='dev-service-key'        # must match rest-api's
+export MCP_JWT_SIGNING_KEY='any-local-dev-secret'
+npx nx serve-http mcp-server
+```
+
+Defaults to `http://localhost:3000/api` for `REST_API_BASE_URL` and port `8080`.
+The OAuth issuer is derived per-request from the request's `Host` header (not an
+env var — see the comment in `packages/mcp-server/src/http-main.ts` for why), so
+`http://localhost:8080` works out of the box with no extra config.
+
+</details>
+
 **3. Install the Skill** so Claude actually follows the authoring workflow (the MCP
 tools alone don't tell it _how_ to use them):
 
@@ -218,3 +271,7 @@ rendered in two different house styles and languages.
 ```sh
 npx nx run-many -t typecheck,build,lint,test -p schema,rest-api,mcp-server,webapp
 ```
+
+`packages/infra` has no `build`/`test` targets (it's a CDK stack, not a deployable
+app) — check it separately with `npx nx run-many -t typecheck,lint -p infra`, and
+validate the stack itself with `npx cdk synth` from `packages/infra`.

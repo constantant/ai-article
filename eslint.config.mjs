@@ -8,6 +8,7 @@ export default [
     ignores: [
       '**/dist',
       '**/dist-bundle',
+      '**/dist-http',
       '**/out-tsc',
       '**/vitest.config.*.timestamp*',
       '**/cdk.out',

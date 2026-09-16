@@ -1,8 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { appProfileSchema, articleDraftInputSchema } from '@org/schema';
 import { z } from 'zod';
-import type { McpServerConfig } from './config.js';
-import { persistKey, removeKey } from './key-store.js';
+import type { KeyStore } from './key-store.js';
 import type { RestClient } from './rest-client.js';
 import { runTool } from './tool-result.js';
 
@@ -19,7 +18,7 @@ const updateArticleInputSchema = articleDraftInputSchema.partial().extend({
 export function registerTools(
   server: McpServer,
   client: RestClient,
-  config: McpServerConfig,
+  keyStore: KeyStore,
 ): void {
   server.registerTool(
     'list_apps',
@@ -45,7 +44,7 @@ export function registerTools(
     (profile) =>
       runTool(async () => {
         const result = await client.registerApp(profile);
-        persistKey(config.keysFilePath, profile.appId, result.apiKey);
+        await keyStore.persist(profile.appId, result.apiKey);
         return result;
       }),
   );
@@ -77,7 +76,7 @@ export function registerTools(
     ({ appId }) =>
       runTool(async () => {
         await client.deleteApp(appId);
-        removeKey(config.keysFilePath, appId);
+        await keyStore.remove(appId);
         return { deleted: appId };
       }),
   );

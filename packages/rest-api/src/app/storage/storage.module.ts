@@ -2,15 +2,18 @@ import { Module } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { DynamoAppProfileRepository } from './dynamodb-app-profile.repository.js';
 import { DynamoArticleRepository } from './dynamodb-article.repository.js';
+import { DynamoUserRepository } from './dynamodb-user.repository.js';
 import { loadDynamoDbConfig } from './dynamodb-config.js';
 import { createDynamoDbDocumentClient } from './dynamodb-client.js';
 import { PrismaArticleRepository } from './prisma-article.repository.js';
 import { PrismaAppProfileRepository } from './prisma-app-profile.repository.js';
+import { PrismaUserRepository } from './prisma-user.repository.js';
 import {
   APP_PROFILE_REPOSITORY,
   ARTICLE_REPOSITORY,
   DYNAMODB_CONFIG,
   DYNAMODB_DOCUMENT_CLIENT,
+  USER_REPOSITORY,
 } from './tokens.js';
 
 /**
@@ -37,6 +40,7 @@ const useDynamoDb = process.env['STORAGE_DRIVER'] === 'dynamodb';
           provide: APP_PROFILE_REPOSITORY,
           useClass: DynamoAppProfileRepository,
         },
+        { provide: USER_REPOSITORY, useClass: DynamoUserRepository },
       ]
     : [
         PrismaService,
@@ -45,7 +49,8 @@ const useDynamoDb = process.env['STORAGE_DRIVER'] === 'dynamodb';
           provide: APP_PROFILE_REPOSITORY,
           useClass: PrismaAppProfileRepository,
         },
+        { provide: USER_REPOSITORY, useClass: PrismaUserRepository },
       ],
-  exports: [ARTICLE_REPOSITORY, APP_PROFILE_REPOSITORY],
+  exports: [ARTICLE_REPOSITORY, APP_PROFILE_REPOSITORY, USER_REPOSITORY],
 })
 export class StorageModule {}

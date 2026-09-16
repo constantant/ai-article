@@ -48,6 +48,40 @@
           }
         }
       },
+      "build-http": {
+        "executor": "@nx/esbuild:esbuild",
+        "outputs": [
+          "{options.outputPath}"
+        ],
+        "defaultConfiguration": "production",
+        "options": {
+          "platform": "node",
+          "outputPath": "packages/mcp-server/dist-http",
+          "format": [
+            "cjs"
+          ],
+          "bundle": false,
+          "main": "packages/mcp-server/src/http-main.ts",
+          "tsConfig": "packages/mcp-server/tsconfig.app.json",
+          "esbuildOptions": {
+            "sourcemap": true,
+            "outExtension": {
+              ".js": ".js"
+            }
+          }
+        },
+        "configurations": {
+          "development": {},
+          "production": {
+            "esbuildOptions": {
+              "sourcemap": false,
+              "outExtension": {
+                ".js": ".js"
+              }
+            }
+          }
+        }
+      },
       "bundle": {
         "executor": "@nx/esbuild:esbuild",
         "outputs": [
@@ -124,12 +158,39 @@
             "buildTarget": "@org/mcp-server:build:production"
           }
         }
+      },
+      "serve-http": {
+        "continuous": true,
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "build-http"
+        ],
+        "options": {
+          "buildTarget": "@org/mcp-server:build-http",
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "development": {
+            "buildTarget": "@org/mcp-server:build-http:development"
+          },
+          "production": {
+            "buildTarget": "@org/mcp-server:build-http:production"
+          }
+        }
       }
     }
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1132.0",
+    "@aws-sdk/lib-dynamodb": "^3.1132.0",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@org/schema": "*",
+    "express": "^4.22.3",
+    "jose": "^6.2.12",
     "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.25"
   }
 }

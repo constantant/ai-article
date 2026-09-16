@@ -44,3 +44,25 @@ export function removeKey(filePath: string, appId: string): void {
   delete keys[appId];
   writeFileSync(filePath, JSON.stringify(keys, null, 2) + '\n');
 }
+
+/**
+ * Where register_app/delete_app persist a key across the lifetime of one
+ * "identity" — a local stdio process (LocalFileKeyStore) or, over HTTP, one
+ * authenticated user's account on the REST API (see rest-key-store.ts).
+ */
+export interface KeyStore {
+  persist(appId: string, apiKey: string): void | Promise<void>;
+  remove(appId: string): void | Promise<void>;
+}
+
+export class LocalFileKeyStore implements KeyStore {
+  constructor(private readonly filePath: string) {}
+
+  persist(appId: string, apiKey: string): void {
+    persistKey(this.filePath, appId, apiKey);
+  }
+
+  remove(appId: string): void {
+    removeKey(this.filePath, appId);
+  }
+}
