@@ -85,6 +85,34 @@ export class RestClient {
     return this.appApiKeys.get(appId);
   }
 
+  /** Makes a key usable for appId in this session, without touching the REST API. */
+  setApiKey(appId: string, apiKey: string): void {
+    this.appApiKeys.set(appId, apiKey);
+  }
+
+  /**
+   * Checks whether apiKey actually authenticates for appId, without persisting or
+   * mutating anything — used by attach_app_key so a caller can't silently save a
+   * typo'd or someone-else's-app key and only discover it's wrong on first use.
+   * Uses the dry-run validate endpoint (ApiKeyGuard-protected, side-effect-free).
+   */
+  async verifyAppKey(appId: string, apiKey: string): Promise<boolean> {
+    try {
+      await this.request('POST', `/apps/${encodeURIComponent(appId)}/articles/validate`, {
+        apiKey,
+        body: {},
+      });
+      return true;
+    } catch (error) {
+      if (error instanceof RestApiError && error.status === 401) {
+        return false;
+      }
+      // Any other status means the guard already let the request through —
+      // the key is valid even though this empty probe body isn't a real article.
+      return true;
+    }
+  }
+
   private apiKeyFor(appId: string): string {
     const key = this.tryApiKeyFor(appId);
     if (!key) {

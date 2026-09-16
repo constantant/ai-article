@@ -63,6 +63,8 @@ describe('MCP tools', () => {
       updateArticle: vi.fn(),
       publishArticle: vi.fn(),
       validateArticle: vi.fn(),
+      verifyAppKey: vi.fn(),
+      setApiKey: vi.fn(),
     } as unknown as RestClient;
 
     const server = new McpServer({ name: 'test-server', version: '0.0.0' });
@@ -186,6 +188,64 @@ describe('MCP tools', () => {
     const result = await client.callTool({
       name: 'create_app',
       arguments: fakeProfile(),
+    });
+
+    expect(result.isError).toBe(true);
+  });
+
+  it('attach_app_key verifies the key, makes it usable in-session, and persists it to disk', async () => {
+    vi.mocked(restClient.verifyAppKey).mockResolvedValue(true);
+
+    const result = await client.callTool({
+      name: 'attach_app_key',
+      arguments: { appId: 'tech-blog', apiKey: 'shared-key' },
+    });
+
+    expect(restClient.verifyAppKey).toHaveBeenCalledWith(
+      'tech-blog',
+      'shared-key',
+    );
+    expect(restClient.setApiKey).toHaveBeenCalledWith(
+      'tech-blog',
+      'shared-key',
+    );
+    expect(textOf(result)).toEqual({ attached: 'tech-blog' });
+    expect(JSON.parse(readFileSync(keysFilePath, 'utf8'))).toEqual({
+      'tech-blog': 'shared-key',
+    });
+  });
+
+  it('attach_app_key rejects an invalid key as an isError result, without persisting anything', async () => {
+    vi.mocked(restClient.verifyAppKey).mockResolvedValue(false);
+
+    const result = await client.callTool({
+      name: 'attach_app_key',
+      arguments: { appId: 'tech-blog', apiKey: 'wrong-key' },
+    });
+
+    expect(result.isError).toBe(true);
+    expect(restClient.setApiKey).not.toHaveBeenCalled();
+    expect(existsSync(keysFilePath)).toBe(false);
+  });
+
+  it('get_app_key returns a key this identity already holds', async () => {
+    persistKey(keysFilePath, 'tech-blog', 'held-key');
+
+    const result = await client.callTool({
+      name: 'get_app_key',
+      arguments: { appId: 'tech-blog' },
+    });
+
+    expect(textOf(result)).toEqual({
+      appId: 'tech-blog',
+      apiKey: 'held-key',
+    });
+  });
+
+  it('get_app_key surfaces a missing-key error as an isError result, not a throw', async () => {
+    const result = await client.callTool({
+      name: 'get_app_key',
+      arguments: { appId: 'unregistered-app' },
     });
 
     expect(result.isError).toBe(true);

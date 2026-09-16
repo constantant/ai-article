@@ -42,6 +42,20 @@ export class RestApiKeyStore implements KeyStore {
     }
   }
 
+  async get(appId: string): Promise<string | undefined> {
+    const res = await fetch(this.url(appId), {
+      headers: { 'x-service-key': this.config.serviceKey },
+    });
+    if (res.status === 404) {
+      return undefined;
+    }
+    if (!res.ok) {
+      throw new Error(`failed to fetch app key for "${appId}": ${res.status}`);
+    }
+    const body = (await res.json()) as { apiKey: string };
+    return body.apiKey;
+  }
+
   private url(appId: string): string {
     return `${this.config.restApiBaseUrl}/users/${encodeURIComponent(this.config.userId)}/app-keys/${encodeURIComponent(appId)}`;
   }

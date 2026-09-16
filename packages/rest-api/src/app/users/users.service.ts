@@ -61,6 +61,12 @@ export class UsersService {
     return this.repo.listAppKeys(userId);
   }
 
+  async getAppKey(userId: string, appId: string): Promise<string | null> {
+    await this.requireUser(userId);
+    const keys = await this.repo.listAppKeys(userId);
+    return keys[appId] ?? null;
+  }
+
   async putAppKey(
     userId: string,
     appId: string,

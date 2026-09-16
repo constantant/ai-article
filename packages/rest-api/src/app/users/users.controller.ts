@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  NotFoundException,
   Param,
   Post,
   Put,
@@ -71,6 +72,27 @@ export class UsersController {
   })
   listAppKeys(@Param('userId') userId: string) {
     return this.users.listAppKeys(userId);
+  }
+
+  @Get(':userId/app-keys/:appId')
+  @UseGuards(ServiceGuard)
+  @ApiOperation({
+    summary:
+      "Service-to-service only: get one of a user's linked app API keys, " +
+      'so a signed-in identity can retrieve a key it already holds (e.g. to ' +
+      'share it with another identity) after the one-time registration response.',
+  })
+  async getAppKey(
+    @Param('userId') userId: string,
+    @Param('appId') appId: string,
+  ) {
+    const apiKey = await this.users.getAppKey(userId, appId);
+    if (apiKey === null) {
+      throw new NotFoundException(
+        `no key linked for app "${appId}" for user "${userId}"`,
+      );
+    }
+    return { apiKey };
   }
 
   @Put(':userId/app-keys/:appId')

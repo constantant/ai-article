@@ -53,6 +53,7 @@ export function removeKey(filePath: string, appId: string): void {
 export interface KeyStore {
   persist(appId: string, apiKey: string): void | Promise<void>;
   remove(appId: string): void | Promise<void>;
+  get(appId: string): string | undefined | Promise<string | undefined>;
 }
 
 export class LocalFileKeyStore implements KeyStore {
@@ -64,5 +65,9 @@ export class LocalFileKeyStore implements KeyStore {
 
   remove(appId: string): void {
     removeKey(this.filePath, appId);
+  }
+
+  get(appId: string): string | undefined {
+    return readPersistedKeys(this.filePath)[appId];
   }
 }

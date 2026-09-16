@@ -107,8 +107,14 @@ every request, so this one deployed connector safely serves multiple people at
 once.
 
 Note this is a _separate_ identity from the local stdio server's key file —
-`register_app` here mints a brand-new app tied to your mobile account; there's no
-tool yet to attach an already-existing app's key to a different identity.
+`register_app` here mints a brand-new app tied to your mobile account. To use an
+app someone else already registered (on another machine, or another mobile
+account), have them give you its `appId` and API key, then ask Claude to use the
+`attach_app_key` tool — it verifies the key against the REST API before saving it
+to your identity, so you can author for that app immediately. If they didn't save
+the key from their original registration response, ask Claude on their end to use
+`get_app_key` — it returns any key their own identity already holds, for exactly
+this sharing purpose.
 
 </details>
 
