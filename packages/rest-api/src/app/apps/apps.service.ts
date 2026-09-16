@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -29,6 +30,25 @@ export class AppsService {
       throw error;
     }
     return { profile, apiKey };
+  }
+
+  /**
+   * Public, unauthenticated registration for a zero-setup install (no admin
+   * key). The Lambda deployment is stateless across invocations, so per-IP
+   * rate limiting isn't reliable here without extra infra — a global cap on
+   * total apps is the abuse guard for now.
+   */
+  async createSelfServe(
+    profile: AppProfile,
+  ): Promise<{ profile: AppProfile; apiKey: string }> {
+    const cap = Number(process.env['SELF_SERVE_APP_CAP'] ?? 30);
+    const existing = await this.repo.list();
+    if (existing.length >= cap) {
+      throw new ForbiddenException(
+        'self-serve app registration is full for now — ask the maintainer to register your app',
+      );
+    }
+    return this.create(profile);
   }
 
   async get(appId: string): Promise<AppProfile> {

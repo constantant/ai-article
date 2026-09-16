@@ -2,7 +2,11 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { AppProfile, Article } from '@org/schema';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { existsSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
+import type { McpServerConfig } from './config.js';
 import { RestApiError } from './rest-client.js';
 import type { RestClient } from './rest-client.js';
 import { registerTools } from './tools.js';
@@ -39,10 +43,19 @@ function textOf(result: Record<string, unknown>): unknown {
 describe('MCP tools', () => {
   let client: Client;
   let restClient: RestClient;
+  let keysFilePath: string;
 
   beforeEach(async () => {
+    keysFilePath = join(tmpdir(), `mcp-tools-spec-keys-${Date.now()}.json`);
+    const config: McpServerConfig = {
+      restApiBaseUrl: 'http://localhost:3000/api',
+      appApiKeys: {},
+      keysFilePath,
+    };
+
     restClient = {
       listApps: vi.fn(),
+      registerApp: vi.fn(),
       createApp: vi.fn(),
       getAppProfile: vi.fn(),
       listArticles: vi.fn(),
@@ -55,7 +68,7 @@ describe('MCP tools', () => {
     } as unknown as RestClient;
 
     const server = new McpServer({ name: 'test-server', version: '0.0.0' });
-    registerTools(server, restClient);
+    registerTools(server, restClient, config);
 
     const [clientTransport, serverTransport] =
       InMemoryTransport.createLinkedPair();
@@ -66,6 +79,12 @@ describe('MCP tools', () => {
     ]);
   });
 
+  afterEach(() => {
+    if (existsSync(keysFilePath)) {
+      rmSync(keysFilePath, { force: true });
+    }
+  });
+
   it('list_apps calls RestClient.listApps and returns its data as tool content', async () => {
     vi.mocked(restClient.listApps).mockResolvedValue([fakeProfile()]);
 
@@ -73,6 +92,42 @@ describe('MCP tools', () => {
 
     expect(restClient.listApps).toHaveBeenCalled();
     expect(textOf(result)).toEqual([fakeProfile()]);
+  });
+
+  it('register_app forwards the full profile, returns the new api key, and persists it to disk', async () => {
+    vi.mocked(restClient.registerApp).mockResolvedValue({
+      profile: fakeProfile(),
+      apiKey: 'self-served-key',
+    });
+
+    const result = await client.callTool({
+      name: 'register_app',
+      arguments: fakeProfile(),
+    });
+
+    expect(restClient.registerApp).toHaveBeenCalledWith(
+      expect.objectContaining({ appId: 'tech-blog' }),
+    );
+    expect(textOf(result)).toEqual({
+      profile: fakeProfile(),
+      apiKey: 'self-served-key',
+    });
+    expect(JSON.parse(readFileSync(keysFilePath, 'utf8'))).toEqual({
+      'tech-blog': 'self-served-key',
+    });
+  });
+
+  it('register_app surfaces a registration-full error as an isError result, not a throw', async () => {
+    vi.mocked(restClient.registerApp).mockRejectedValue(
+      new Error('self-serve app registration is full for now'),
+    );
+
+    const result = await client.callTool({
+      name: 'register_app',
+      arguments: fakeProfile(),
+    });
+
+    expect(result.isError).toBe(true);
   });
 
   it('create_app forwards the full profile and returns the new api key', async () => {

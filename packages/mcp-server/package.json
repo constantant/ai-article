@@ -48,6 +48,29 @@
           }
         }
       },
+      "bundle": {
+        "executor": "@nx/esbuild:esbuild",
+        "outputs": [
+          "{options.outputPath}"
+        ],
+        "options": {
+          "platform": "node",
+          "outputPath": "packages/mcp-server/dist-bundle",
+          "format": [
+            "cjs"
+          ],
+          "bundle": true,
+          "thirdParty": true,
+          "main": "packages/mcp-server/src/main.ts",
+          "tsConfig": "packages/mcp-server/tsconfig.app.json",
+          "esbuildOptions": {
+            "sourcemap": false,
+            "outExtension": {
+              ".js": ".js"
+            }
+          }
+        }
+      },
       "prune-lockfile": {
         "dependsOn": [
           "build"

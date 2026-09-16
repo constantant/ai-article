@@ -1,0 +1,34 @@
+{
+  "manifest_version": "0.3",
+  "name": "ai-article-platform",
+  "display_name": "AI Article Platform",
+  "version": "0.1.0",
+  "description": "Draft, validate, and publish structured articles to a registered app. Self-serve app registration — no key to paste in, no server to run.",
+  "author": {
+    "name": "kk"
+  },
+  "server": {
+    "type": "node",
+    "entry_point": "server/main.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/main.js"],
+      "env": {
+        "REST_API_BASE_URL": "https://lczeiiixbf2mrtyizmyvgurkta0qoczq.lambda-url.eu-central-1.on.aws/api",
+        "ADMIN_API_KEY": "${user_config.admin_api_key}"
+      }
+    }
+  },
+  "user_config": {
+    "admin_api_key": {
+      "type": "string",
+      "title": "Admin key (optional)",
+      "description": "Only needed if you're an operator registering apps via the admin-gated create_app tool. Most people should leave this blank and just ask Claude to register a new app — that's self-serve.",
+      "sensitive": true,
+      "required": false
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin", "win32"]
+  }
+}

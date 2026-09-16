@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "ai-article-platform": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/server/main.js"],
+      "env": {
+        "REST_API_BASE_URL": "https://lczeiiixbf2mrtyizmyvgurkta0qoczq.lambda-url.eu-central-1.on.aws/api"
+      }
+    }
+  }
+}

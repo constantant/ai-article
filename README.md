@@ -43,7 +43,52 @@ Claude (Skill) --MCP--> mcp-server --HTTP--> rest-api --Prisma--> SQLite
    that app's design tokens (set as CSS custom properties server-side, so there's no
    flash of the wrong app's colors).
 
-## Getting started
+## Quick install (no cloning, no admin key)
+
+Want Claude to just draft and publish articles through this platform, without
+setting up a dev environment? The REST API is already deployed and shared, so all
+you need is the Skill and the MCP server — both install in one step, and app
+registration is self-serve (no key to ask anyone for).
+
+<details>
+<summary><b>Claude Code</b></summary>
+
+```
+/plugin marketplace add constantant/ai-article
+/plugin install article-authoring@ai-article
+```
+
+Restart Claude Code, then just ask, e.g.:
+
+> Using the article-authoring skill, register a new app called my-blog for a
+> [describe the site], then write and publish a short article for it.
+
+That's it — no `.mcp.json`, no server to run, no key to paste in. `register_app`
+mints a key and remembers it locally.
+
+</details>
+
+<details>
+<summary><b>Claude Desktop</b></summary>
+
+Download the latest `.mcpb` file from
+[Releases](https://github.com/constantant/ai-article/releases) and double-click it
+(or drag it into Claude Desktop, or use Settings → Extensions → Advanced settings →
+Install Extension…). No settings to fill in — leave "Admin key" blank unless
+you're an operator.
+
+Claude Desktop has no Skill mechanism, so you won't get the guided authoring
+workflow the Skill provides — just ask directly, e.g. "register a new app called
+my-blog for [description], then write a short article for it," and the MCP tools'
+own descriptions carry enough guidance to get it right.
+
+</details>
+
+Maintainers: both artifacts are built from `packages/mcp-server` and
+`packages/skill` via `node scripts/build-distribution.mjs` — run it and commit the
+result (`plugin/`, `desktop-extension/`) before tagging a release.
+
+## Getting started (for contributors)
 
 ```sh
 npm install

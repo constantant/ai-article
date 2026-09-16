@@ -13,7 +13,7 @@ async function main() {
     name: 'ai-article-platform',
     version: '0.1.0',
   });
-  registerTools(server, client);
+  registerTools(server, client, config);
   registerResources(server, client);
 
   const transport = new StdioServerTransport();

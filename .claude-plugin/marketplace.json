@@ -1,0 +1,15 @@
+{
+  "name": "ai-article",
+  "description": "AI Article Platform — Skill and MCP server for authoring articles across registered apps",
+  "owner": {
+    "name": "kk",
+    "url": "https://github.com/constantant/ai-article"
+  },
+  "plugins": [
+    {
+      "name": "article-authoring",
+      "source": "./plugin",
+      "description": "Draft, validate, and publish structured articles to a registered app through the ai-article-platform MCP server. Includes self-serve app registration — no admin key needed to get started."
+    }
+  ]
+}

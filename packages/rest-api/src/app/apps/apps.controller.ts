@@ -34,4 +34,16 @@ export class AppsController {
   create(@Body(new ZodValidationPipe(appProfileSchema)) profile: AppProfile) {
     return this.apps.create(profile);
   }
+
+  @Post('self-serve')
+  @ApiOperation({
+    summary:
+      'Publicly register a new app — no admin key required. Capped globally ' +
+      'to bound abuse. Returns the API key once.',
+  })
+  createSelfServe(
+    @Body(new ZodValidationPipe(appProfileSchema)) profile: AppProfile,
+  ) {
+    return this.apps.createSelfServe(profile);
+  }
 }

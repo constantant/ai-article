@@ -7,9 +7,12 @@ export default [
   {
     ignores: [
       '**/dist',
+      '**/dist-bundle',
       '**/out-tsc',
       '**/vitest.config.*.timestamp*',
       '**/cdk.out',
+      'plugin/server/**',
+      'desktop-extension/server/**',
     ],
   },
   {

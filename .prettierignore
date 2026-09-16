@@ -1,6 +1,10 @@
 # Add files here to ignore them from prettier formatting
 /dist
+/dist-bundle
 /coverage
+# bundled build output, not hand-written source
+/plugin/server
+/desktop-extension/server
 /.nx/cache
 /.nx/workspace-data
 .nx/self-healing

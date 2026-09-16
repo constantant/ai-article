@@ -1,6 +1,8 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { appProfileSchema, articleDraftInputSchema } from '@org/schema';
 import { z } from 'zod';
+import type { McpServerConfig } from './config.js';
+import { persistKey } from './key-store.js';
 import type { RestClient } from './rest-client.js';
 import { runTool } from './tool-result.js';
 
@@ -14,7 +16,11 @@ const updateArticleInputSchema = articleDraftInputSchema.partial().extend({
   id: z.string().min(1),
 });
 
-export function registerTools(server: McpServer, client: RestClient): void {
+export function registerTools(
+  server: McpServer,
+  client: RestClient,
+  config: McpServerConfig,
+): void {
   server.registerTool(
     'list_apps',
     {
@@ -25,14 +31,35 @@ export function registerTools(server: McpServer, client: RestClient): void {
   );
 
   server.registerTool(
+    'register_app',
+    {
+      description:
+        'Register a new app (destination site) with its own voice, allowed block types, and design ' +
+        'tokens — no admin key required. This is the normal, self-serve way to get started. Returns the ' +
+        "new app's profile and API key; this server remembers that key (in memory for this session, and " +
+        'on disk so it still works after a restart), so articles can be authored for the new app ' +
+        'immediately. Self-serve registration is capped globally to bound abuse — if it fails saying ' +
+        'registration is full, tell the user to ask the maintainer to register the app instead (create_app).',
+      inputSchema: appProfileSchema.shape,
+    },
+    (profile) =>
+      runTool(async () => {
+        const result = await client.registerApp(profile);
+        persistKey(config.keysFilePath, profile.appId, result.apiKey);
+        return result;
+      }),
+  );
+
+  server.registerTool(
     'create_app',
     {
       description:
-        'Register a new app (destination site) with its own voice, allowed block types, and design tokens. ' +
-        'Requires this server to hold an admin key (ADMIN_API_KEY) — if this fails with a missing-admin-key ' +
-        "error, tell the user to add one to their MCP server config. Returns the new app's profile and API " +
-        'key; this server remembers that key for the rest of the session, so articles can be authored for the ' +
-        'new app immediately without reconfiguring anything.',
+        'Register a new app (destination site) as an operator, with its own voice, allowed block types, ' +
+        'and design tokens. Requires this server to hold an admin key (ADMIN_API_KEY) — most users should ' +
+        'use register_app instead, which needs no admin key. If this fails with a missing-admin-key error, ' +
+        'use register_app, or tell the user to add ADMIN_API_KEY if they specifically need this tool. ' +
+        "Returns the new app's profile and API key; this server remembers that key for the rest of the " +
+        'session, so articles can be authored for the new app immediately without reconfiguring anything.',
       inputSchema: appProfileSchema.shape,
     },
     (profile) => runTool(() => client.createApp(profile)),

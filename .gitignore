@@ -2,8 +2,13 @@
 
 # compiled output
 dist
+dist-bundle
 tmp
 out-tsc
+
+# packed Desktop Extension — built on demand via `npx @anthropic-ai/mcpb pack
+# desktop-extension`, attached to GitHub Releases rather than committed
+*.mcpb
 
 # dependencies
 node_modules

@@ -106,6 +106,19 @@ export class RestClient {
     return result;
   }
 
+  /** Self-serve registration — no admin key needed, unlike createApp(). */
+  async registerApp(
+    profile: AppProfile,
+  ): Promise<{ profile: AppProfile; apiKey: string }> {
+    const result = await this.request<{ profile: AppProfile; apiKey: string }>(
+      'POST',
+      '/apps/self-serve',
+      { body: profile },
+    );
+    this.appApiKeys.set(profile.appId, result.apiKey);
+    return result;
+  }
+
   getAppProfile(appId: string): Promise<AppProfile> {
     return this.request('GET', `/apps/${encodeURIComponent(appId)}`);
   }

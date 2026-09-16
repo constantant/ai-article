@@ -1,0 +1,12 @@
+{
+  "name": "article-authoring",
+  "description": "Draft, validate, and publish structured articles to a registered app through the ai-article-platform MCP server. Bundles a self-contained MCP server (no build step) and the article-authoring Skill. No admin key needed — register_app is self-serve.",
+  "version": "0.1.0",
+  "author": {
+    "name": "kk"
+  },
+  "homepage": "https://github.com/constantant/ai-article",
+  "repository": "https://github.com/constantant/ai-article",
+  "license": "MIT",
+  "keywords": ["mcp", "articles", "content", "cms"]
+}
