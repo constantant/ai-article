@@ -51,6 +51,14 @@ const provider = new AiArticleOAuthProvider(
  * Function URL, which itself depends on the function). Built lazily and
  * cached per distinct Host; otherwise stateless, so caching across a warm
  * container is safe.
+ *
+ * resourceServerUrl is the issuer origin itself (no /mcp suffix) so that
+ * the exact URL this stack hands out (packages/infra's McpServerUrl output
+ * — the bare Function URL) is both the OAuth resource identifier and the
+ * actual MCP endpoint below. Splitting these into two different URLs is a
+ * common MCP-server convention, but it means whoever configures a client
+ * has to remember to append a path segment nobody told them about — not
+ * worth it here when the deployed URL can just be the one thing to paste.
  */
 const authRoutersByHost = new Map<string, RequestHandler>();
 function authRouterFor(req: Request): RequestHandler {
@@ -63,7 +71,7 @@ function authRouterFor(req: Request): RequestHandler {
   const router = mcpAuthRouter({
     provider,
     issuerUrl,
-    resourceServerUrl: new URL('/mcp', issuerUrl),
+    resourceServerUrl: issuerUrl,
   });
   authRoutersByHost.set(host, router);
   return router;
@@ -81,7 +89,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 const bearerAuth = requireBearerAuth({ verifier: provider });
 
-app.post('/mcp', express.json(), bearerAuth, async (req, res) => {
+app.post('/', express.json(), bearerAuth, async (req, res) => {
   const userId = req.auth?.extra?.['userId'];
   if (typeof userId !== 'string') {
     res.status(401).json({ error: 'token has no associated user' });
@@ -133,12 +141,12 @@ app.post('/mcp', express.json(), bearerAuth, async (req, res) => {
   }
 });
 
-app.get('/mcp', (_req, res) => {
+app.get('/', (_req, res) => {
   res.status(405).json({
     error: 'GET is not supported — this server runs stateless, no SSE',
   });
 });
-app.delete('/mcp', (_req, res) => {
+app.delete('/', (_req, res) => {
   res.status(405).json({
     error: 'DELETE is not supported — this server runs stateless, no sessions',
   });
