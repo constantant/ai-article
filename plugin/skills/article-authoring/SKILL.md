@@ -1,6 +1,6 @@
 ---
 name: article-authoring
-description: Draft, validate, and publish structured web articles to a registered app (destination site) through the ai-article-platform MCP server — tools register_app, create_app, delete_app, list_apps, get_app_profile, list_articles, get_article, validate_article, create_article, update_article, publish_article. Matches each app's own voice, allowed content structure, and visual style automatically, so the same skill works across many differently-styled apps, and can register brand-new apps on request — no admin key needed, registration is self-serve. Use whenever asked to write, draft, edit, or publish an article/blog post/web page for a named app or site ("write a post for tech-blog", "draft a lifestyle article about X", "publish this article"), to set up a new app/site ("create a new app called ..."), or to remove one ("delete the app called ..."). Not for generic writing unrelated to a registered app.
+description: Draft, validate, and publish structured web articles to a registered app (destination site) through the ai-article-platform MCP server — tools register_app, create_app, delete_app, list_apps, get_app_profile, list_articles, get_article, validate_article, create_article, update_article, publish_article, delete_article. Matches each app's own voice, allowed content structure, and visual style automatically, so the same skill works across many differently-styled apps, and can register brand-new apps on request — no admin key needed, registration is self-serve. Use whenever asked to write, draft, edit, or publish an article/blog post/web page for a named app or site ("write a post for tech-blog", "draft a lifestyle article about X", "publish this article"), to set up a new app/site ("create a new app called ..."), or to remove an app or article ("delete the app called ...", "remove that article"). Not for generic writing unrelated to a registered app.
 ---
 
 # Article Authoring
@@ -63,6 +63,9 @@ with the user before calling it, especially if the app has published articles.
 8. To revise something already created, use `update_article` with just the changed
    fields (e.g. `{ appId, id, blocks: [...] }`) — you don't need to resend the whole
    article.
+9. `delete_article(appId, id)` permanently removes one article — there is no undo.
+   Confirm with the user first, especially if it's published (deleting it takes it
+   off the live site immediately).
 
 ## Block types
 

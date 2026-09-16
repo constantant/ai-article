@@ -42449,6 +42449,18 @@ function removeKey(filePath, appId) {
   delete keys[appId];
   (0, import_node_fs.writeFileSync)(filePath, JSON.stringify(keys, null, 2) + "\n");
 }
+var LocalFileKeyStore = class {
+  constructor(filePath) {
+    this.filePath = filePath;
+  }
+  filePath;
+  persist(appId, apiKey) {
+    persistKey(this.filePath, appId, apiKey);
+  }
+  remove(appId) {
+    removeKey(this.filePath, appId);
+  }
+};
 
 // packages/mcp-server/src/config.ts
 function parseAppApiKeys(raw) {
@@ -42627,6 +42639,12 @@ var appProfileSchema = external_exports.object({
   contentConventions: external_exports.string().optional(),
   designTokens: designTokensSchema,
   exampleArticleIds: external_exports.array(external_exports.string()).optional()
+});
+
+// packages/schema/dist/lib/user.js
+var userSchema = external_exports.object({
+  id: external_exports.string().min(1),
+  email: external_exports.string().email()
 });
 
 // packages/schema/dist/lib/json-schema.js
@@ -42851,6 +42869,15 @@ var RestClient = class {
       }
     );
   }
+  deleteArticle(appId, id) {
+    return this.request(
+      "DELETE",
+      `/apps/${encodeURIComponent(appId)}/articles/${encodeURIComponent(id)}`,
+      {
+        apiKey: this.apiKeyFor(appId)
+      }
+    );
+  }
   validateArticle(appId, input2) {
     return this.request(
       "POST",
@@ -42893,7 +42920,7 @@ var updateArticleInputSchema = articleDraftInputSchema.partial().extend({
   appId: external_exports.string().min(1),
   id: external_exports.string().min(1)
 });
-function registerTools(server, client, config2) {
+function registerTools(server, client, keyStore) {
   server.registerTool(
     "list_apps",
     {
@@ -42909,7 +42936,7 @@ function registerTools(server, client, config2) {
     },
     (profile) => runTool(async () => {
       const result = await client.registerApp(profile);
-      persistKey(config2.keysFilePath, profile.appId, result.apiKey);
+      await keyStore.persist(profile.appId, result.apiKey);
       return result;
     })
   );
@@ -42929,7 +42956,7 @@ function registerTools(server, client, config2) {
     },
     ({ appId }) => runTool(async () => {
       await client.deleteApp(appId);
-      removeKey(config2.keysFilePath, appId);
+      await keyStore.remove(appId);
       return { deleted: appId };
     })
   );
@@ -42989,6 +43016,17 @@ function registerTools(server, client, config2) {
     },
     ({ appId, id }) => runTool(() => client.publishArticle(appId, id))
   );
+  server.registerTool(
+    "delete_article",
+    {
+      description: "Permanently delete one article (draft or published) \u2014 there's no undo. Confirm with the user first, especially if the article is published, since this removes it from the live site immediately.",
+      inputSchema: articleRefSchema.shape
+    },
+    ({ appId, id }) => runTool(async () => {
+      await client.deleteArticle(appId, id);
+      return { deleted: id };
+    })
+  );
 }
 
 // packages/mcp-server/src/main.ts
@@ -42999,7 +43037,7 @@ async function main() {
     name: "ai-article-platform",
     version: "0.1.0"
   });
-  registerTools(server, client, config2);
+  registerTools(server, client, new LocalFileKeyStore(config2.keysFilePath));
   registerResources(server, client);
   const transport = new StdioServerTransport();
   await server.connect(transport);

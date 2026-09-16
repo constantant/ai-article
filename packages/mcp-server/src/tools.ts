@@ -154,4 +154,20 @@ export function registerTools(
     },
     ({ appId, id }) => runTool(() => client.publishArticle(appId, id)),
   );
+
+  server.registerTool(
+    'delete_article',
+    {
+      description:
+        "Permanently delete one article (draft or published) — there's no undo. Confirm with the user " +
+        'first, especially if the article is published, since this removes it from the live site ' +
+        'immediately.',
+      inputSchema: articleRefSchema.shape,
+    },
+    ({ appId, id }) =>
+      runTool(async () => {
+        await client.deleteArticle(appId, id);
+        return { deleted: id };
+      }),
+  );
 }

@@ -136,6 +136,11 @@ export class ArticlesService {
     return this.loadArticle(appId, id);
   }
 
+  async delete(appId: string, id: string): Promise<void> {
+    await this.loadArticle(appId, id); // 404s if it doesn't exist
+    await this.articles.delete(appId, id);
+  }
+
   async getPublishedBySlug(appId: string, slug: string): Promise<Article> {
     const article = await this.articles.findBySlug(appId, slug);
     if (!article || article.status !== 'published') {

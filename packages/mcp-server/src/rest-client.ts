@@ -206,6 +206,16 @@ export class RestClient {
     );
   }
 
+  deleteArticle(appId: string, id: string): Promise<void> {
+    return this.request(
+      'DELETE',
+      `/apps/${encodeURIComponent(appId)}/articles/${encodeURIComponent(id)}`,
+      {
+        apiKey: this.apiKeyFor(appId),
+      },
+    );
+  }
+
   validateArticle(
     appId: string,
     input: unknown,

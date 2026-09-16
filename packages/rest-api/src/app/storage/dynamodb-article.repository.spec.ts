@@ -166,6 +166,37 @@ describe('DynamoArticleRepository', () => {
     });
   });
 
+  describe('delete', () => {
+    it('deletes the article and its slug pointer in one transaction', async () => {
+      ddbMock
+        .on(GetCommand)
+        .resolves({ Item: { ...article(), sk: 'ARTICLE#a1' } });
+      ddbMock.on(TransactWriteCommand).resolves({});
+
+      await repo.delete('tech-blog', 'a1');
+
+      const call = ddbMock.commandCalls(TransactWriteCommand)[0];
+      const items = call.args[0].input.TransactItems ?? [];
+      expect(items).toHaveLength(2);
+      expect(items[0].Delete?.Key).toEqual({
+        appId: 'tech-blog',
+        sk: 'ARTICLE#a1',
+      });
+      expect(items[1].Delete?.Key).toEqual({
+        appId: 'tech-blog',
+        sk: 'SLUG#hello',
+      });
+    });
+
+    it('is a no-op when the article does not exist', async () => {
+      ddbMock.on(GetCommand).resolves({});
+
+      await repo.delete('tech-blog', 'missing');
+
+      expect(ddbMock.commandCalls(TransactWriteCommand)).toHaveLength(0);
+    });
+  });
+
   describe('deleteAllForApp', () => {
     it('queries the whole partition and deletes every item found, including slug pointers', async () => {
       ddbMock.on(QueryCommand).resolves({

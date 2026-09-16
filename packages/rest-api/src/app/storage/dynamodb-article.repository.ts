@@ -220,6 +220,32 @@ export class DynamoArticleRepository implements ArticleRepository {
       : articles;
   }
 
+  /** Deletes the article and its slug pointer together; a no-op if it doesn't exist. */
+  async delete(appId: string, id: string): Promise<void> {
+    const existing = await this.findById(appId, id);
+    if (!existing) {
+      return;
+    }
+    await this.client.send(
+      new TransactWriteCommand({
+        TransactItems: [
+          {
+            Delete: {
+              TableName: this.config.articlesTable,
+              Key: { appId, sk: articleSk(id) },
+            },
+          },
+          {
+            Delete: {
+              TableName: this.config.articlesTable,
+              Key: { appId, sk: slugSk(existing.slug) },
+            },
+          },
+        ],
+      }),
+    );
+  }
+
   /** Deletes every item under this app's partition — articles and slug pointers alike. */
   async deleteAllForApp(appId: string): Promise<void> {
     const res = await this.client.send(

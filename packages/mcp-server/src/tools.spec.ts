@@ -54,6 +54,7 @@ describe('MCP tools', () => {
       registerApp: vi.fn(),
       createApp: vi.fn(),
       deleteApp: vi.fn(),
+      deleteArticle: vi.fn(),
       getAppProfile: vi.fn(),
       listArticles: vi.fn(),
       getArticle: vi.fn(),
@@ -248,6 +249,31 @@ describe('MCP tools', () => {
 
     expect(restClient.publishArticle).toHaveBeenCalledWith('tech-blog', 'a1');
     expect((textOf(result) as Article).status).toBe('published');
+  });
+
+  it('delete_article forwards appId and id', async () => {
+    vi.mocked(restClient.deleteArticle).mockResolvedValue(undefined);
+
+    const result = await client.callTool({
+      name: 'delete_article',
+      arguments: { appId: 'tech-blog', id: 'a1' },
+    });
+
+    expect(restClient.deleteArticle).toHaveBeenCalledWith('tech-blog', 'a1');
+    expect(textOf(result)).toEqual({ deleted: 'a1' });
+  });
+
+  it('delete_article surfaces a RestApiError as an isError result, not a throw', async () => {
+    vi.mocked(restClient.deleteArticle).mockRejectedValue(
+      new RestApiError(404, { message: 'not found' }),
+    );
+
+    const result = await client.callTool({
+      name: 'delete_article',
+      arguments: { appId: 'tech-blog', id: 'nope' },
+    });
+
+    expect(result.isError).toBe(true);
   });
 
   it('translates a RestApiError into an isError tool result instead of throwing', async () => {

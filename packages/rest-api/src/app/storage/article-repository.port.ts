@@ -13,5 +13,6 @@ export interface ArticleRepository {
   findById(appId: string, id: string): Promise<Article | null>;
   findBySlug(appId: string, slug: string): Promise<Article | null>;
   list(appId: string, filter?: { status?: ArticleStatus }): Promise<Article[]>;
+  delete(appId: string, id: string): Promise<void>;
   deleteAllForApp(appId: string): Promise<void>;
 }

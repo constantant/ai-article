@@ -157,5 +157,33 @@ describe('Articles flow (e2e)', () => {
         .expect(200);
       expect(list.body.map((a: { slug: string }) => a.slug)).toContain('hello');
     });
+
+    it('deletes an article, requiring the api key and 404ing afterward', async () => {
+      const created = await request(httpServer)
+        .post('/api/apps/lifecycle-app/articles')
+        .set('x-api-key', apiKey)
+        .send({
+          appId: 'lifecycle-app',
+          slug: 'delete-me',
+          title: 'Delete Me',
+          blocks: [{ type: 'heading', level: 1, text: 'Delete Me' }],
+        })
+        .expect(201);
+      const id = created.body.id;
+
+      await request(httpServer)
+        .delete(`/api/apps/lifecycle-app/articles/${id}`)
+        .expect(401);
+
+      await request(httpServer)
+        .delete(`/api/apps/lifecycle-app/articles/${id}`)
+        .set('x-api-key', apiKey)
+        .expect(204);
+
+      await request(httpServer)
+        .get(`/api/apps/lifecycle-app/articles/${id}`)
+        .set('x-api-key', apiKey)
+        .expect(404);
+    });
   });
 });

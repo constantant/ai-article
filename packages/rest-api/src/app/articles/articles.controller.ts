@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -87,5 +89,13 @@ export class ArticlesController {
   @ApiOperation({ summary: 'Transition a draft to published.' })
   publish(@Param('appId') appId: string, @Param('id') id: string) {
     return this.articles.publish(appId, id);
+  }
+
+  @Delete(':id')
+  @UseGuards(ApiKeyGuard)
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Delete an article (draft or published).' })
+  remove(@Param('appId') appId: string, @Param('id') id: string) {
+    return this.articles.delete(appId, id);
   }
 }

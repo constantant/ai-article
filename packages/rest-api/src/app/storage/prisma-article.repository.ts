@@ -86,6 +86,10 @@ export class PrismaArticleRepository implements ArticleRepository {
     return rows.map(toArticle);
   }
 
+  async delete(appId: string, id: string): Promise<void> {
+    await this.prisma.article.deleteMany({ where: { id, appId } });
+  }
+
   async deleteAllForApp(appId: string): Promise<void> {
     await this.prisma.article.deleteMany({ where: { appId } });
   }
