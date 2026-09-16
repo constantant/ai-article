@@ -1,0 +1,97 @@
+name: Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      # Sets NX_BASE/NX_HEAD correctly for both PR and push events, so
+      # `nx affected` only runs targets for what actually changed.
+      - uses: nrwl/nx-set-shas@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - run: npm ci
+
+      # rest-api's Prisma client is generated into a gitignored directory
+      # (src/generated/prisma); a fresh checkout doesn't have it, so build/
+      # typecheck/test for rest-api fail without this.
+      - run: npx prisma generate --config prisma7.config.ts
+        working-directory: packages/rest-api
+
+      - run: npx nx format:check --base=$NX_BASE --head=$NX_HEAD
+      - run: npx nx affected -t lint,typecheck,test,build --base=$NX_BASE --head=$NX_HEAD
+
+      # Lets the deploy job reuse this install instead of running `npm ci` again.
+      - uses: actions/cache/save@v4
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        with:
+          path: node_modules
+          key: node-modules-${{ github.sha }}
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # required for GitHub OIDC -> AWS role assumption
+      contents: read
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - uses: actions/cache/restore@v4
+        id: node-modules-cache
+        with:
+          path: node_modules
+          key: node-modules-${{ github.sha }}
+
+      # Falls back to a real install if the build job's cache entry was
+      # evicted (repo-wide 10GB cache limit) before this job started.
+      - run: npm ci
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
+
+      # No long-lived AWS keys: the runner exchanges its OIDC token for
+      # temporary credentials, scoped to this repo+branch by the role's
+      # trust policy (see packages/infra/lib/ai-article-stack.ts).
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::771368245246:role/ai-article-github-cdk-deploy
+          aws-region: eu-central-1
+
+      # cdk deploy builds and pushes both Docker image assets (via the CDK
+      # bootstrap's own asset-publishing role, assumed through the role
+      # above) as part of the same deploy.
+      - name: cdk deploy
+        working-directory: packages/infra
+        run: npx cdk deploy --require-approval never --outputs-file cdk-outputs.json
+
+      - name: Summarize deployed URLs
+        working-directory: packages/infra
+        run: |
+          echo "### Deployed" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat cdk-outputs.json >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
