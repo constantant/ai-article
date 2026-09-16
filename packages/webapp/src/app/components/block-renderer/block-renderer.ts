@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  input,
+} from '@angular/core';
 import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
 import type { Block, EmbedBlock } from '@org/schema';
 import { RichTextComponent } from '../rich-text/rich-text';
@@ -25,9 +30,7 @@ export class BlockRendererComponent {
     switch (block.provider) {
       case 'youtube': {
         const id = this.extractYouTubeId(block.url);
-        return id
-          ? `https://www.youtube-nocookie.com/embed/${id}`
-          : null;
+        return id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
       }
       case 'codepen':
         return this.extractCodepenEmbed(block.url);
