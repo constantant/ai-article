@@ -15,14 +15,14 @@ from one system.
 
 ## Packages
 
-| Package                                      | What it is                                                                                                                                                                                                                                   |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`packages/schema`](packages/schema)         | Zod models (`Article`, `Block` union, `AppProfile`) and `validateArticle` — the single source of truth every other package imports directly, plus a native JSON Schema export for MCP.                                                       |
-| [`packages/rest-api`](packages/rest-api)     | NestJS + Prisma/SQLite. Multi-tenant article storage behind a repository interface (so a future app can use Postgres/Mongo without touching the service layer), per-app API-key auth, Swagger docs.                                          |
+| Package                                      | What it is                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`packages/schema`](packages/schema)         | Zod models (`Article`, `Block` union, `AppProfile`) and `validateArticle` — the single source of truth every other package imports directly, plus a native JSON Schema export for MCP.                                                                                                                                                                                                                                                                                                                              |
+| [`packages/rest-api`](packages/rest-api)     | NestJS + Prisma/SQLite. Multi-tenant article storage behind a repository interface (so a future app can use Postgres/Mongo without touching the service layer), per-app API-key auth, Swagger docs.                                                                                                                                                                                                                                                                                                                 |
 | [`packages/mcp-server`](packages/mcp-server) | An MCP server (`@modelcontextprotocol/sdk`) exposing the REST API as tools (`list_apps`, `get_app_profile`, `create_article`, `validate_article`, `publish_article`, ...) and resources (live JSON Schemas, app profiles, example articles). Two entrypoints: `main.ts` speaks stdio for Claude Code/Desktop; `http-main.ts` speaks Streamable HTTP behind its own OAuth 2.1 authorization server, for use as a **Claude mobile connector**, where each signed-in user gets their own isolated set of app API keys. |
-| [`packages/skill`](packages/skill)           | `SKILL.md` — the authoring workflow a model follows: resolve the app, read its profile, draft within its allowed block types, validate, then publish.                                                                                        |
-| [`packages/webapp`](packages/webapp)         | Angular 22, SSR, Material 3, real `@angular/localize` i18n. Renders any app's articles by mapping each `AppProfile`'s design tokens to CSS custom properties per request — no per-app code, just per-app data.                               |
-| [`packages/infra`](packages/infra)           | CDK (TypeScript). Deploys `rest-api`, `webapp`, and `mcp-server` (HTTP/OAuth mode) to AWS Lambda (container image, Function URLs) backed by DynamoDB, plus the GitHub OIDC deploy role for CI.                                               |
+| [`packages/skill`](packages/skill)           | `SKILL.md` — the authoring workflow a model follows: resolve the app, read its profile, draft within its allowed block types, validate, then publish.                                                                                                                                                                                                                                                                                                                                                               |
+| [`packages/webapp`](packages/webapp)         | Angular 22, SSR, Material 3, real `@angular/localize` i18n. Renders any app's articles by mapping each `AppProfile`'s design tokens to CSS custom properties per request — no per-app code, just per-app data.                                                                                                                                                                                                                                                                                                      |
+| [`packages/infra`](packages/infra)           | CDK (TypeScript). Deploys `rest-api`, `webapp`, and `mcp-server` (HTTP/OAuth mode) to AWS Lambda (container image, Function URLs) backed by DynamoDB, plus the GitHub OIDC deploy role for CI.                                                                                                                                                                                                                                                                                                                      |
 
 ## How it fits together
 
@@ -44,7 +44,7 @@ Claude mobile (connector) --HTTP-MCP+OAuth-->                        |
    that app's design tokens (set as CSS custom properties server-side, so there's no
    flash of the wrong app's colors).
 4. mcp-server's two entrypoints share every tool/resource but differ in identity: the
-   stdio process *is* your identity (its local key file is yours alone), while the HTTP
+   stdio process _is_ your identity (its local key file is yours alone), while the HTTP
    entrypoint authenticates each caller via OAuth and resolves that signed-in user's own
    app keys from rest-api on every request — so one deployed connector safely serves many
    people.
@@ -106,7 +106,7 @@ Each signed-in identity gets its own isolated set of app keys, resolved fresh on
 every request, so this one deployed connector safely serves multiple people at
 once.
 
-Note this is a *separate* identity from the local stdio server's key file —
+Note this is a _separate_ identity from the local stdio server's key file —
 `register_app` here mints a brand-new app tied to your mobile account; there's no
 tool yet to attach an already-existing app's key to a different identity.
 

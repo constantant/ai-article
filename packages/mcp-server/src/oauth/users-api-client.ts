@@ -16,7 +16,9 @@ export class UsersApiClient {
       body: JSON.stringify({ email, password }),
     });
     if (!res.ok) {
-      throw new Error(`registration failed (${res.status}): ${await res.text()}`);
+      throw new Error(
+        `registration failed (${res.status}): ${await res.text()}`,
+      );
     }
     return (await res.json()) as { id: string; email: string };
   }

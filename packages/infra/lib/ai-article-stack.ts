@@ -192,31 +192,35 @@ export class AiArticleStack extends Stack {
     );
 
     // --- mcp-server (remote MCP connector, HTTP + OAuth) ---
-    const mcpServerFunction = new DockerImageFunction(this, 'McpServerFunction', {
-      functionName: 'ai-article-mcp-server',
-      code: DockerImageCode.fromImageAsset('../..', {
-        file: 'packages/mcp-server/Dockerfile',
-        exclude: IMAGE_ASSET_EXCLUDES,
-      }),
-      memorySize: 512,
-      timeout: Duration.seconds(30),
-      environment: {
-        REST_API_BASE_URL: Fn.join('', [restApiUrl.url, 'api']),
-        MCP_SERVICE_KEY: mcpServiceKey.secretValue.toString(),
-        MCP_JWT_SIGNING_KEY: mcpJwtSigningKey.secretValue.toString(),
-        STORAGE_DRIVER: 'dynamodb',
-        DYNAMODB_OAUTH_CLIENTS_TABLE: oauthClientsTable.tableName,
-        DYNAMODB_OAUTH_USED_CODES_TABLE: oauthUsedCodesTable.tableName,
-        // Deliberately no issuer-URL env var — this server's own Function
-        // URL isn't knowable here without a circular dependency (this
-        // function's environment would depend on its own FunctionUrl
-        // resource, which depends back on the function — the same shape of
-        // cycle webappFunction's ALLOWED_HOSTS wildcard works around below,
-        // except a wildcard can't stand in for an OAuth issuer, which must
-        // be one exact origin). mcp-server derives it per-request from the
-        // Host header instead (see http-main.ts).
+    const mcpServerFunction = new DockerImageFunction(
+      this,
+      'McpServerFunction',
+      {
+        functionName: 'ai-article-mcp-server',
+        code: DockerImageCode.fromImageAsset('../..', {
+          file: 'packages/mcp-server/Dockerfile',
+          exclude: IMAGE_ASSET_EXCLUDES,
+        }),
+        memorySize: 512,
+        timeout: Duration.seconds(30),
+        environment: {
+          REST_API_BASE_URL: Fn.join('', [restApiUrl.url, 'api']),
+          MCP_SERVICE_KEY: mcpServiceKey.secretValue.toString(),
+          MCP_JWT_SIGNING_KEY: mcpJwtSigningKey.secretValue.toString(),
+          STORAGE_DRIVER: 'dynamodb',
+          DYNAMODB_OAUTH_CLIENTS_TABLE: oauthClientsTable.tableName,
+          DYNAMODB_OAUTH_USED_CODES_TABLE: oauthUsedCodesTable.tableName,
+          // Deliberately no issuer-URL env var — this server's own Function
+          // URL isn't knowable here without a circular dependency (this
+          // function's environment would depend on its own FunctionUrl
+          // resource, which depends back on the function — the same shape of
+          // cycle webappFunction's ALLOWED_HOSTS wildcard works around below,
+          // except a wildcard can't stand in for an OAuth issuer, which must
+          // be one exact origin). mcp-server derives it per-request from the
+          // Host header instead (see http-main.ts).
+        },
       },
-    });
+    );
     oauthClientsTable.grantReadWriteData(mcpServerFunction);
     oauthUsedCodesTable.grantReadWriteData(mcpServerFunction);
 

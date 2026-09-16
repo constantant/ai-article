@@ -43,9 +43,7 @@ export class DynamoDbUsedCodeGuard implements UsedCodeGuard {
     private readonly tableName: string,
     endpoint = process.env['DYNAMODB_ENDPOINT'],
   ) {
-    this.client = DynamoDBDocumentClient.from(
-      new DynamoDBClient({ endpoint }),
-    );
+    this.client = DynamoDBDocumentClient.from(new DynamoDBClient({ endpoint }));
   }
 
   async claim(jti: string, ttlSeconds: number): Promise<boolean> {

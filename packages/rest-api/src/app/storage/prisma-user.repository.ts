@@ -46,7 +46,11 @@ export class PrismaUserRepository implements UserRepository {
     return this.prisma.user.count();
   }
 
-  async putAppKey(userId: string, appId: string, apiKey: string): Promise<void> {
+  async putAppKey(
+    userId: string,
+    appId: string,
+    apiKey: string,
+  ): Promise<void> {
     await this.prisma.userAppKey.upsert({
       where: { userId_appId: { userId, appId } },
       create: { userId, appId, apiKey },

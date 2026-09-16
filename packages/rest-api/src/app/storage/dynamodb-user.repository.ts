@@ -124,7 +124,11 @@ export class DynamoUserRepository implements UserRepository {
       return null;
     }
     const item = res.Item as ProfileItem;
-    return { id: item.userId, email: item.email, passwordHash: item.passwordHash };
+    return {
+      id: item.userId,
+      email: item.email,
+      passwordHash: item.passwordHash,
+    };
   }
 
   async count(): Promise<number> {
@@ -139,7 +143,11 @@ export class DynamoUserRepository implements UserRepository {
     return res.Count ?? 0;
   }
 
-  async putAppKey(userId: string, appId: string, apiKey: string): Promise<void> {
+  async putAppKey(
+    userId: string,
+    appId: string,
+    apiKey: string,
+  ): Promise<void> {
     const item: AppKeyItem = { userId, sk: appKeySk(appId), apiKey };
     await this.client.send(
       new PutCommand({ TableName: this.config.usersTable, Item: item }),
@@ -168,7 +176,10 @@ export class DynamoUserRepository implements UserRepository {
     );
     const items = (res.Items ?? []) as AppKeyItem[];
     return Object.fromEntries(
-      items.map((item) => [item.sk.slice(APPKEY_SK_PREFIX.length), item.apiKey]),
+      items.map((item) => [
+        item.sk.slice(APPKEY_SK_PREFIX.length),
+        item.apiKey,
+      ]),
     );
   }
 }

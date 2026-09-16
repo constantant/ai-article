@@ -15,7 +15,5 @@ export function verifyPassword(password: string, storedHash: string): boolean {
   }
   const expected = Buffer.from(derivedHex, 'hex');
   const actual = scryptSync(password, salt, KEY_LENGTH);
-  return (
-    expected.length === actual.length && timingSafeEqual(expected, actual)
-  );
+  return expected.length === actual.length && timingSafeEqual(expected, actual);
 }

@@ -93,10 +93,7 @@ export class UsersController {
   @ApiOperation({
     summary: "Service-to-service only: unlink one of a user's app API keys.",
   })
-  deleteAppKey(
-    @Param('userId') userId: string,
-    @Param('appId') appId: string,
-  ) {
+  deleteAppKey(@Param('userId') userId: string, @Param('appId') appId: string) {
     return this.users.deleteAppKey(userId, appId);
   }
 }

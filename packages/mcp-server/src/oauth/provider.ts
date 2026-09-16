@@ -112,11 +112,9 @@ export class AiArticleOAuthProvider implements OAuthServerProvider {
     client: OAuthClientInformationFull,
     authorizationCode: string,
   ): Promise<string> {
-    const claims = await this.jwt
-      .verifyCode(authorizationCode)
-      .catch(() => {
-        throw new InvalidGrantError('invalid or expired authorization code');
-      });
+    const claims = await this.jwt.verifyCode(authorizationCode).catch(() => {
+      throw new InvalidGrantError('invalid or expired authorization code');
+    });
     if (claims.clientId !== client.client_id) {
       throw new InvalidGrantError(
         'authorization code was not issued to this client',
@@ -131,11 +129,9 @@ export class AiArticleOAuthProvider implements OAuthServerProvider {
     _codeVerifier?: string,
     redirectUri?: string,
   ): Promise<OAuthTokens> {
-    const claims = await this.jwt
-      .verifyCode(authorizationCode)
-      .catch(() => {
-        throw new InvalidGrantError('invalid or expired authorization code');
-      });
+    const claims = await this.jwt.verifyCode(authorizationCode).catch(() => {
+      throw new InvalidGrantError('invalid or expired authorization code');
+    });
     if (claims.clientId !== client.client_id) {
       throw new InvalidGrantError(
         'authorization code was not issued to this client',
@@ -158,11 +154,9 @@ export class AiArticleOAuthProvider implements OAuthServerProvider {
     refreshToken: string,
     scopes?: string[],
   ): Promise<OAuthTokens> {
-    const claims = await this.jwt
-      .verifyRefreshToken(refreshToken)
-      .catch(() => {
-        throw new InvalidGrantError('invalid or expired refresh token');
-      });
+    const claims = await this.jwt.verifyRefreshToken(refreshToken).catch(() => {
+      throw new InvalidGrantError('invalid or expired refresh token');
+    });
     if (claims.clientId !== client.client_id) {
       throw new InvalidGrantError(
         'refresh token was not issued to this client',

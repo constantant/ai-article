@@ -38,9 +38,7 @@ export class RestApiKeyStore implements KeyStore {
       headers: { 'x-service-key': this.config.serviceKey },
     });
     if (!res.ok && res.status !== 404) {
-      throw new Error(
-        `failed to remove app key for "${appId}": ${res.status}`,
-      );
+      throw new Error(`failed to remove app key for "${appId}": ${res.status}`);
     }
   }
 

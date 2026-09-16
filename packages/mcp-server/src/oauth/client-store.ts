@@ -1,7 +1,11 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+} from '@aws-sdk/lib-dynamodb';
 import type { OAuthRegisteredClientsStore } from '@modelcontextprotocol/sdk/server/auth/clients.js';
 import type { OAuthClientInformationFull } from '@modelcontextprotocol/sdk/shared/auth.js';
 
@@ -57,7 +61,9 @@ export class DynamoDbClientRecordStore implements ClientRecordStore {
     const res = await this.client.send(
       new GetCommand({ TableName: this.tableName, Key: { clientId } }),
     );
-    return res.Item ? (res.Item['data'] as OAuthClientInformationFull) : undefined;
+    return res.Item
+      ? (res.Item['data'] as OAuthClientInformationFull)
+      : undefined;
   }
 
   async put(client: OAuthClientInformationFull): Promise<void> {
@@ -78,7 +84,10 @@ export class OAuthClientStore implements OAuthRegisteredClientsStore {
   }
 
   async registerClient(
-    client: Omit<OAuthClientInformationFull, 'client_id' | 'client_id_issued_at'>,
+    client: Omit<
+      OAuthClientInformationFull,
+      'client_id' | 'client_id_issued_at'
+    >,
   ): Promise<OAuthClientInformationFull> {
     // The SDK's register handler defaults clientIdGeneration to true, so by
     // the time this is called `client` already carries client_id and

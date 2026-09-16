@@ -12,9 +12,7 @@ import { USER_REPOSITORY } from '../storage/tokens.js';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @Inject(USER_REPOSITORY) private readonly repo: UserRepository,
-  ) {}
+  constructor(@Inject(USER_REPOSITORY) private readonly repo: UserRepository) {}
 
   /**
    * Public, unauthenticated registration for zero-setup mobile-connector
@@ -63,7 +61,11 @@ export class UsersService {
     return this.repo.listAppKeys(userId);
   }
 
-  async putAppKey(userId: string, appId: string, apiKey: string): Promise<void> {
+  async putAppKey(
+    userId: string,
+    appId: string,
+    apiKey: string,
+  ): Promise<void> {
     await this.requireUser(userId);
     await this.repo.putAppKey(userId, appId, apiKey);
   }

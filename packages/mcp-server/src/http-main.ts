@@ -13,7 +13,10 @@ import {
 import { JwtIssuer } from './oauth/jwt.js';
 import { AiArticleOAuthProvider } from './oauth/provider.js';
 import type { UsedCodeGuard } from './oauth/used-codes.js';
-import { DynamoDbUsedCodeGuard, InMemoryUsedCodeGuard } from './oauth/used-codes.js';
+import {
+  DynamoDbUsedCodeGuard,
+  InMemoryUsedCodeGuard,
+} from './oauth/used-codes.js';
 import { UsersApiClient } from './oauth/users-api-client.js';
 import { registerResources } from './resources.js';
 import { RestClient } from './rest-client.js';
@@ -131,14 +134,20 @@ app.post('/mcp', express.json(), bearerAuth, async (req, res) => {
 });
 
 app.get('/mcp', (_req, res) => {
-  res.status(405).json({ error: 'GET is not supported — this server runs stateless, no SSE' });
+  res.status(405).json({
+    error: 'GET is not supported — this server runs stateless, no SSE',
+  });
 });
 app.delete('/mcp', (_req, res) => {
-  res.status(405).json({ error: 'DELETE is not supported — this server runs stateless, no sessions' });
+  res.status(405).json({
+    error: 'DELETE is not supported — this server runs stateless, no sessions',
+  });
 });
 
 app.listen(config.port, () => {
   // stdout is fine here — this is the HTTP entrypoint, not the stdio MCP
   // transport's wire (contrast main.ts, which must never console.log).
-  console.log(`ai-article-platform MCP HTTP server listening on :${config.port}`);
+  console.log(
+    `ai-article-platform MCP HTTP server listening on :${config.port}`,
+  );
 });
